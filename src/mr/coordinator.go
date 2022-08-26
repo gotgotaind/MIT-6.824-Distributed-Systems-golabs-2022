@@ -54,6 +54,12 @@ func (c *Coordinator) Done() bool {
 	return ret
 }
 
+
+type worker struct {
+	id string
+	status string
+	processing string
+}
 //
 // create a Coordinator.
 // main/mrcoordinator.go calls this function.
@@ -63,7 +69,12 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 	c := Coordinator{}
 
 	// Your code here.
+	var files_stat = make(map[string]string)
+	for i,file range files  {
+		files_stat="unstarted"
+	}
 
+	var workers = make(worker[])
 
 	c.server()
 	return &c

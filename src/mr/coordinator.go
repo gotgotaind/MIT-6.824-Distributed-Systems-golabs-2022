@@ -1,11 +1,12 @@
 package mr
 
-import "log"
-import "net"
-import "os"
-import "net/rpc"
-import "net/http"
-
+import (
+	"log"
+	"net"
+	"net/http"
+	"net/rpc"
+	"os"
+)
 
 type Coordinator struct {
 	// Your definitions here.
@@ -23,7 +24,6 @@ func (c *Coordinator) Example(args *ExampleArgs, reply *ExampleReply) error {
 	reply.Y = args.X + 1
 	return nil
 }
-
 
 //
 // start a thread that listens for RPCs from worker.go
@@ -50,16 +50,15 @@ func (c *Coordinator) Done() bool {
 
 	// Your code here.
 
-
 	return ret
 }
 
-
 type worker struct {
-	id string
-	status string
+	id         string
+	status     string
 	processing string
 }
+
 //
 // create a Coordinator.
 // main/mrcoordinator.go calls this function.
@@ -69,12 +68,12 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 	c := Coordinator{}
 
 	// Your code here.
-	var files_stat = make(map[string]string)
-	for i,file range files  {
-		files_stat="unstarted"
+	files_stat := make(map[string]string)
+	for _, file := range files {
+		files_stat[file] = "unstarted"
 	}
 
-	var workers = make(worker[])
+	// workers := make([]worker, 0)
 
 	c.server()
 	return &c

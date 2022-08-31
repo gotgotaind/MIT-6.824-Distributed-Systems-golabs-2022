@@ -6,14 +6,44 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
+	"time"
 )
 
+type worker struct {
+	id         string
+	status     string
+	processing string
+}
+
+type file_status struct {
+	status     string
+	start_time int64
+}
 type Coordinator struct {
 	// Your definitions here.
-
+	files_status map[string]file_status
+	step         string
+	nReduce      int
 }
 
 // Your code here -- RPC handlers for the worker to call.
+func (c *Coordinator) GetWork(args *GetWorkArgs, reply *GetWorkReply) error {
+
+	var chosen_file string
+	for file, file_status := range c.files_status {
+		if file_status.status == "unstarted" {
+			chosen_file = file
+			file_status.status = "started"
+			file_status.start_time = time.Now().Unix()
+			break
+		}
+	}
+
+	reply.MapOrReduce = "map"
+	reply.Filename = chosen_file
+	reply.Nreduce = c.nReduce
+	return nil
+}
 
 //
 // an example RPC handler.
@@ -53,12 +83,6 @@ func (c *Coordinator) Done() bool {
 	return ret
 }
 
-type worker struct {
-	id         string
-	status     string
-	processing string
-}
-
 //
 // create a Coordinator.
 // main/mrcoordinator.go calls this function.
@@ -68,11 +92,12 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 	c := Coordinator{}
 
 	// Your code here.
-	files_stat := make(map[string]string)
+	c.nReduce = c.nReduce
+	files_stat := make(map[string]file_status)
 	for _, file := range files {
-		files_stat[file] = "unstarted"
+		files_stat[file] = file_status{"unstarted", 0}
 	}
-
+	c.files_status = files_stat
 	// workers := make([]worker, 0)
 
 	c.server()

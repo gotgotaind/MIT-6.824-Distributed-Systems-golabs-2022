@@ -37,7 +37,17 @@ func Worker(mapf func(string, string) []KeyValue,
 	// uncomment to send the Example RPC to the coordinator.
 	for {
 		fmt.Printf("one loop!\n")
-		CallExample()
+		args := GetWorkArgs{}
+		reply := GetWorkReply{}
+		ok := call("Coordinator.GetWork", &args, &reply)
+
+		if ok {
+			// reply.Y should be 100.
+			fmt.Printf("reply %v\n", reply)
+		} else {
+			fmt.Printf("call failed!\n")
+		}
+
 		time.Sleep(8 * time.Second)
 	}
 	// CallExample()

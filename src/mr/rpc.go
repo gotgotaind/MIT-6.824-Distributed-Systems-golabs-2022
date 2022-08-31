@@ -25,6 +25,10 @@ type ExampleReply struct {
 }
 
 // Add your RPC definitions here.
+type GetWorkArgs struct {
+	Dummy string
+}
+
 type GetWorkReply struct {
 	MapOrReduce string
 	Filename    string

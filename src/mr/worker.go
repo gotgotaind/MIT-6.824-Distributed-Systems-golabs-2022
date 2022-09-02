@@ -115,28 +115,28 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 //
 // performs map function
 //
-func do_map(filename string,nReduce int) bool {
-	intermediate := []mr.KeyValue{}
+func do_map(filename string,nReduce int,mapf func(string, string) []KeyValue) bool {
+	intermediate := []KeyValue{}
 
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatalf("cannot open %v", filename)
+	}
+	content, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatalf("cannot read %v", filename)
+	}
+	file.Close()
+	kva := mapf(filename, string(content))
+
+	reduce_files:=[3]os.File
+	for i:=0 ; i< nReduce ; i++ {
 		file, err := os.Open(filename)
 		if err != nil {
 			log.Fatalf("cannot open %v", filename)
 		}
-		content, err := ioutil.ReadAll(file)
-		if err != nil {
-			log.Fatalf("cannot read %v", filename)
-		}
-		file.Close()
-		kva := mapf(filename, string(content))
-
-		reduce_files:=[nReduce]*File
-		for i:=0 ; i< nReduce ; i++ {
-			file, err := os.Open(filename)
-			if err != nil {
-				log.Fatalf("cannot open %v", filename)
-			}
-			reduce_files[i]=file
-		}
-		
+		reduce_files[i]=file
+	}
+	return true
 	
 }

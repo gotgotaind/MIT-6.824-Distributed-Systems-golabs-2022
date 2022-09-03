@@ -32,6 +32,7 @@ type GetWorkArgs struct {
 type GetWorkReply struct {
 	MapOrReduce string
 	Filename    string
+	MapTaskId   int
 	Nreduce     int
 	ReduceId    int
 }

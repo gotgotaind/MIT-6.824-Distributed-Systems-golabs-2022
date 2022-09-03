@@ -3,13 +3,12 @@ package mr
 import (
 	"fmt"
 	"hash/fnv"
+	"io/ioutil"
 	"log"
 	"net/rpc"
+	"os"
 	"time"
 )
-import "os"
-import "io/ioutil"
-import "sort"
 
 //
 // Map functions return a slice of KeyValue.
@@ -47,8 +46,8 @@ func Worker(mapf func(string, string) []KeyValue,
 		if ok {
 			// reply.Y should be 100.
 			fmt.Printf("reply %v\n", reply)
-			if( reply.MapOrReduce == "map ") {
-				
+			if reply.MapOrReduce == "map " {
+
 			}
 		} else {
 			fmt.Printf("call failed!\n")
@@ -115,7 +114,7 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 //
 // performs map function
 //
-func do_map(filename string,nReduce int,mapf func(string, string) []KeyValue) bool {
+func do_map(filename string, nReduce int, mapf func(string, string) []KeyValue) bool {
 	intermediate := []KeyValue{}
 
 	file, err := os.Open(filename)
@@ -129,14 +128,14 @@ func do_map(filename string,nReduce int,mapf func(string, string) []KeyValue) bo
 	file.Close()
 	kva := mapf(filename, string(content))
 
-	reduce_files:=[3]os.File
-	for i:=0 ; i< nReduce ; i++ {
+	reduce_files := make([]*os.File, nReduce)
+	for i := 0; i < nReduce; i++ {
 		file, err := os.Open(filename)
 		if err != nil {
 			log.Fatalf("cannot open %v", filename)
 		}
-		reduce_files[i]=file
+		reduce_files[i] = file
 	}
 	return true
-	
+
 }

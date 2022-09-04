@@ -1,12 +1,14 @@
 package mr
 
 import (
+	"encoding/json"
 	"fmt"
 	"hash/fnv"
 	"io/ioutil"
 	"log"
 	"net/rpc"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -46,8 +48,11 @@ func Worker(mapf func(string, string) []KeyValue,
 		if ok {
 			// reply.Y should be 100.
 			fmt.Printf("reply %v\n", reply)
-			if reply.MapOrReduce == "map " {
-
+			if reply.MapOrReduce == "map" {
+				fmt.Printf("I is a map")
+				do_map(reply.Filename, reply.MapTaskId, reply.Nreduce, mapf)
+			} else {
+				fmt.Printf("It is not a map %v", reply.MapOrReduce)
 			}
 		} else {
 			fmt.Printf("call failed!\n")
@@ -114,12 +119,13 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 //
 // performs map function
 //
-func do_map(filename string, nReduce int, mapf func(string, string) []KeyValue) bool {
-	intermediate := []KeyValue{}
+func do_map(filename string, file_id int, nReduce int, mapf func(string, string) []KeyValue) bool {
 
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatalf("cannot open %v", filename)
+	} else {
+		log.Printf("opened %v", filename)
 	}
 	content, err := ioutil.ReadAll(file)
 	if err != nil {
@@ -128,14 +134,31 @@ func do_map(filename string, nReduce int, mapf func(string, string) []KeyValue) 
 	file.Close()
 	kva := mapf(filename, string(content))
 
-	reduce_files := make([]*os.File, nReduce)
+	reduce_files_json_encoder := make([]*json.Encoder, nReduce)
+	reduce_files_handlers := make([]*os.File, nReduce)
 	for i := 0; i < nReduce; i++ {
-		file, err := os.Open(filename)
+		o_file_name := "mr-map-intermediate-" + strconv.Itoa(file_id) + "-" + strconv.Itoa(i) + ".txt"
+		file, err := os.OpenFile(o_file_name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 		if err != nil {
-			log.Fatalf("cannot open %v", filename)
+			log.Fatalf("cannot open %v", o_file_name)
 		}
-		reduce_files[i] = file
+		enc := json.NewEncoder(file)
+		reduce_files_json_encoder[i] = enc
+		reduce_files_handlers[i] = file
 	}
-	return true
 
+	for _, kv := range kva {
+		iReduce := ihash(kv.Key) % nReduce
+		if err := reduce_files_json_encoder[iReduce].Encode(&kv); err != nil {
+			log.Fatalf("cannot encode %v", kv)
+		}
+	}
+
+	for i := 0; i < nReduce; i++ {
+		if err := reduce_files_handlers[i].Close(); err != nil {
+			log.Fatalf("cannot close %v", reduce_files_handlers[i])
+		}
+	}
+
+	return true
 }

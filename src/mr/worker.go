@@ -45,12 +45,17 @@ func Worker(mapf func(string, string) []KeyValue,
 		reply := GetWorkReply{}
 		ok := call("Coordinator.GetWork", &args, &reply)
 
+		Filename=reply.Filename;
+		MapTaskId=reply.MapTaskId
+		Nreduce=reply.Nreduce
+		
+
 		if ok {
 			// reply.Y should be 100.
 			fmt.Printf("reply %v\n", reply)
 			if reply.MapOrReduce == "map" {
 				fmt.Printf("I is a map")
-				do_map(reply.Filename, reply.MapTaskId, reply.Nreduce, mapf)
+				do_map(Filename, MapTaskId, Nreduce, mapf)
 			} else {
 				fmt.Printf("It is not a map %v", reply.MapOrReduce)
 			}

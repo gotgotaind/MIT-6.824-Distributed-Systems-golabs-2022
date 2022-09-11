@@ -33,8 +33,16 @@ type GetWorkReply struct {
 	MapOrReduce string
 	Filename    string
 	MapTaskId   int
+	Nmap        int
 	Nreduce     int
 	ReduceId    int
+}
+
+type NotifyEndArgs struct {
+	Filename string
+}
+type NotifyEndReply struct {
+	Dummy string
 }
 
 // Cook up a unique-ish UNIX-domain socket name

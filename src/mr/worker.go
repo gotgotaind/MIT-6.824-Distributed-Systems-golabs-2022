@@ -45,9 +45,11 @@ func Worker(mapf func(string, string) []KeyValue,
 		reply := GetWorkReply{}
 		ok := call("Coordinator.GetWork", &args, &reply)
 
-		Filename = reply.Filename
-		MapTaskId = reply.MapTaskId
-		Nreduce = reply.Nreduce
+		Filename := reply.Filename
+		MapTaskId := reply.MapTaskId
+		Nreduce := reply.Nreduce
+		ReduceId := reply.ReduceId
+		Nmap := reply.Nmap
 
 		if ok {
 			// reply.Y should be 100.
@@ -55,12 +57,18 @@ func Worker(mapf func(string, string) []KeyValue,
 			if reply.MapOrReduce == "map" {
 				fmt.Printf("I is a map")
 				do_map(Filename, MapTaskId, Nreduce, mapf)
-				do_notify_end()
-			} else {
-				fmt.Printf("It is not a map %v", reply.MapOrReduce)
+				args := NotifyEndArgs{Filename: Filename}
+				reply := NotifyEndReply{}
+				ok := call("Coordinator.NotifyEnd", &args, &reply)
+				if !ok {
+					fmt.Printf("Call to NotifyEnd failed!\n")
+				}
+			} else if reply.MapOrReduce == "reduce" {
+				fmt.Printf("It is a reduce %v", reply.MapOrReduce)
+				do_reduce(ReduceId, Nmap, Nreduce, reducef)
 			}
 		} else {
-			fmt.Printf("call failed!\n")
+			fmt.Printf("call to GetWork failed!\n")
 		}
 
 		time.Sleep(8 * time.Second)
@@ -166,4 +174,17 @@ func do_map(filename string, file_id int, nReduce int, mapf func(string, string)
 	}
 
 	return true
+}
+
+func do_reduce(ReduceId int, Nmap int, Nreduce int, reducef func(string, []string) string) {
+
+	dec := json.NewDecoder(file)
+	for {
+		var kv KeyValue
+		if err := dec.Decode(&kv); err != nil {
+			log.Fatal("Error decoding file")
+		}
+		kva = append(kva, kv)
+	}
+
 }

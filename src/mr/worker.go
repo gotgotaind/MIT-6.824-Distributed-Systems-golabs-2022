@@ -178,13 +178,21 @@ func do_map(filename string, file_id int, nReduce int, mapf func(string, string)
 
 func do_reduce(ReduceId int, Nmap int, Nreduce int, reducef func(string, []string) string) {
 
-	dec := json.NewDecoder(file)
-	for {
-		var kv KeyValue
-		if err := dec.Decode(&kv); err != nil {
-			log.Fatal("Error decoding file")
+	kva := make([]KeyValue, 0)
+	for i := 0; i < Nmap; i++ {
+		i_file_name := "mr-map-intermediate-" + strconv.Itoa(i) + "-" + strconv.Itoa(ReduceId) + ".txt"
+		file, err := os.Open(i_file_name)
+		if err != nil {
+			log.Fatalf("cannot open %v", i_file_name)
 		}
-		kva = append(kva, kv)
+		dec := json.NewDecoder(file)
+		for {
+			var kv KeyValue
+			if err := dec.Decode(&kv); err != nil {
+				log.Fatal("Error decoding file")
+			}
+			kva = append(kva, kv)
+		}
 	}
 
 }

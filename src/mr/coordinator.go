@@ -68,6 +68,8 @@ func (c *Coordinator) GetWork(args *GetWorkArgs, reply *GetWorkReply) error {
 			}
 		}
 	}
+	// if no map or reduce  left to allocate, probably should manage
+	// some kind of wait task
 
 	return nil
 }
@@ -150,9 +152,10 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 	c := Coordinator{}
 
 	// Your code here.
+	c.step = "map"
 	c.nReduce = nReduce
 	files_stat := make(map[string]file_status)
-	Nmap = 0
+	Nmap := 0
 	for i, file := range files {
 		files_stat[file] = file_status{"unstarted", i, 0}
 		Nmap++

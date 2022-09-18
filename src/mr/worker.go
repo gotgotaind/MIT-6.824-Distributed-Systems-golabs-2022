@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/rpc"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -29,6 +31,14 @@ func ihash(key string) int {
 	h.Write([]byte(key))
 	return int(h.Sum32() & 0x7fffffff)
 }
+
+// for sorting by key.
+type ByKey []KeyValue
+
+// for sorting by key.
+func (a ByKey) Len() int           { return len(a) }
+func (a ByKey) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByKey) Less(i, j int) bool { return a[i].Key < a[j].Key }
 
 //
 // main/mrworker.go calls this function.
@@ -57,15 +67,21 @@ func Worker(mapf func(string, string) []KeyValue,
 			if reply.MapOrReduce == "map" {
 				fmt.Printf("I is a map")
 				do_map(Filename, MapTaskId, Nreduce, mapf)
-				args := NotifyEndArgs{Filename: Filename}
-				reply := NotifyEndReply{}
-				ok := call("Coordinator.NotifyEnd", &args, &reply)
+				args := NotifyMapEndArgs{Filename: Filename}
+				reply := NotifyMapEndReply{}
+				ok := call("Coordinator.NotifyMapEnd", &args, &reply)
 				if !ok {
-					fmt.Printf("Call to NotifyEnd failed!\n")
+					fmt.Printf("Call to NotifyMapEnd failed!\n")
 				}
 			} else if reply.MapOrReduce == "reduce" {
 				fmt.Printf("It is a reduce %v", reply.MapOrReduce)
 				do_reduce(ReduceId, Nmap, Nreduce, reducef)
+				args := NotifyReduceEndArgs{ReduceId: ReduceId}
+				reply := NotifyReduceEndReply{}
+				ok := call("Coordinator.NotifyReduceEnd", &args, &reply)
+				if !ok {
+					fmt.Printf("Call to NotifyReduceEnd failed!\n")
+				}
 			}
 		} else {
 			fmt.Printf("call to GetWork failed!\n")
@@ -188,11 +204,42 @@ func do_reduce(ReduceId int, Nmap int, Nreduce int, reducef func(string, []strin
 		dec := json.NewDecoder(file)
 		for {
 			var kv KeyValue
-			if err := dec.Decode(&kv); err != nil {
-				log.Fatal("Error decoding file")
+			err := dec.Decode(&kv)
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatal("Error decoding file ", i_file_name, err)
 			}
 			kva = append(kva, kv)
 		}
 	}
+	sort.Sort(ByKey(kva))
 
+	oname := "mr-out-" + strconv.Itoa(ReduceId)
+	ofile, _ := os.Create(oname)
+
+	//
+	// call Reduce on each distinct key in intermediate[],
+	// and print the result to mr-out-0.
+	//
+	i := 0
+	for i < len(kva) {
+		j := i + 1
+		for j < len(kva) && kva[j].Key == kva[i].Key {
+			j++
+		}
+		values := []string{}
+		for k := i; k < j; k++ {
+			values = append(values, kva[k].Value)
+		}
+		output := reducef(kva[i].Key, values)
+
+		// this is the correct format for each line of Reduce output.
+		fmt.Fprintf(ofile, "%v %v\n", kva[i].Key, output)
+
+		i = j
+	}
+
+	ofile.Close()
 }

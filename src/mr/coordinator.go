@@ -74,10 +74,18 @@ func (c *Coordinator) GetWork(args *GetWorkArgs, reply *GetWorkReply) error {
 	return nil
 }
 
-func (c *Coordinator) NotifyEnd(args *NotifyEndArgs, reply *NotifyEndReply) error {
+func (c *Coordinator) NotifyMapEnd(args *NotifyMapEndArgs, reply *NotifyMapEndReply) error {
 	file_status := c.files_status[args.Filename]
 	file_status.status = "finished"
 	c.files_status[args.Filename] = file_status
+
+	return nil
+}
+
+func (c *Coordinator) NotifyReduceEnd(args *NotifyReduceEndArgs, reply *NotifyReduceEndReply) error {
+	reduce_status := c.reduces_status[args.ReduceId]
+	reduce_status.status = "finished"
+	c.reduces_status[args.ReduceId] = reduce_status
 
 	return nil
 }

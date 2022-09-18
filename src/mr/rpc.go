@@ -38,10 +38,17 @@ type GetWorkReply struct {
 	ReduceId    int
 }
 
-type NotifyEndArgs struct {
+type NotifyMapEndArgs struct {
 	Filename string
 }
-type NotifyEndReply struct {
+type NotifyMapEndReply struct {
+	Dummy string
+}
+
+type NotifyReduceEndArgs struct {
+	ReduceId int
+}
+type NotifyReduceEndReply struct {
 	Dummy string
 }
 

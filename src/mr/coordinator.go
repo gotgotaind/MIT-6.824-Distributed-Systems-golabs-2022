@@ -6,8 +6,12 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
+	"sync"
 	"time"
 )
+
+var f *os.File
+var err error
 
 type worker struct {
 	id         string
@@ -32,18 +36,22 @@ type Coordinator struct {
 	step           string
 	nReduce        int
 	Nmap           int
+	mu             sync.Mutex
+	max_task_time  int64
 }
 
 // Your code here -- RPC handlers for the worker to call.
 func (c *Coordinator) GetWork(args *GetWorkArgs, reply *GetWorkReply) error {
 
-	reply.MapOrReduce = "nowork"
+	c.mu.Lock()
+	reply.MapOrReduce = "wait"
 	if c.step == "map" {
 		for file, file_status := range c.files_status {
 			if file_status.status == "unstarted" {
 
 				file_status.status = "started"
 				file_status.start_time = time.Now().Unix()
+				c.files_status[file] = file_status
 
 				reply.MapOrReduce = "map"
 				reply.Filename = file
@@ -58,6 +66,7 @@ func (c *Coordinator) GetWork(args *GetWorkArgs, reply *GetWorkReply) error {
 			if reduce_status.status == "unstarted" {
 				reduce_status.status = "started"
 				reduce_status.start_time = time.Now().Unix()
+				c.reduces_status[id] = reduce_status
 
 				reply.MapOrReduce = "reduce"
 				reply.Nreduce = c.nReduce
@@ -70,23 +79,25 @@ func (c *Coordinator) GetWork(args *GetWorkArgs, reply *GetWorkReply) error {
 	}
 	// if no map or reduce  left to allocate, probably should manage
 	// some kind of wait task
-
+	c.mu.Unlock()
 	return nil
 }
 
 func (c *Coordinator) NotifyMapEnd(args *NotifyMapEndArgs, reply *NotifyMapEndReply) error {
+	c.mu.Lock()
 	file_status := c.files_status[args.Filename]
 	file_status.status = "finished"
 	c.files_status[args.Filename] = file_status
-
+	c.mu.Unlock()
 	return nil
 }
 
 func (c *Coordinator) NotifyReduceEnd(args *NotifyReduceEndArgs, reply *NotifyReduceEndReply) error {
+	c.mu.Lock()
 	reduce_status := c.reduces_status[args.ReduceId]
 	reduce_status.status = "finished"
 	c.reduces_status[args.ReduceId] = reduce_status
-
+	c.mu.Unlock()
 	return nil
 }
 
@@ -122,32 +133,46 @@ func (c *Coordinator) server() {
 //
 func (c *Coordinator) Done() bool {
 	ret := false
-
+	c.mu.Lock()
 	map_finished := 0
 	// Your code here.
-	for _, file_status := range c.files_status {
+	for file, file_status := range c.files_status {
 		if file_status.status == "finished" {
 			map_finished++
+		} else {
+			if (time.Now().Unix() - file_status.start_time) > c.max_task_time {
+				new_file_status := c.files_status[file]
+				new_file_status.status = "unstarted"
+				c.files_status[file] = new_file_status
+
+			}
 		}
 	}
-	log.Printf("Map tasks %v/%v\n", map_finished, len(c.files_status))
+	// log.Printf("Map tasks %v/%v\n", map_finished, len(c.files_status))
 	if map_finished == len(c.files_status) && c.step == "map" {
 		c.step = "reduce"
 	}
 
 	reduce_finished := 0
-	for _, reduce_status := range c.reduces_status {
+	for id, reduce_status := range c.reduces_status {
 		if reduce_status.status == "finished" {
 			reduce_finished++
+		} else {
+			if (time.Now().Unix() - reduce_status.start_time) > c.max_task_time {
+				new_reduce_status := c.reduces_status[id]
+				new_reduce_status.status = "unstarted"
+				c.reduces_status[id] = new_reduce_status
+
+			}
 		}
 	}
-	log.Printf("Reduce tasks %v/%v\n", reduce_finished, len(c.reduces_status))
+	// log.Printf("Reduce tasks %v/%v\n", reduce_finished, len(c.reduces_status))
 	if reduce_finished == len(c.reduces_status) {
 		c.step = "done"
 		ret = true
 		log.Println("All done!")
 	}
-
+	c.mu.Unlock()
 	return ret
 }
 
@@ -157,10 +182,20 @@ func (c *Coordinator) Done() bool {
 // nReduce is the number of reduce tasks to use.
 //
 func MakeCoordinator(files []string, nReduce int) *Coordinator {
+	/*f, err = os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
+
+	log.SetOutput(f)
+	*/
+
 	c := Coordinator{}
 
 	// Your code here.
 	c.step = "map"
+	c.max_task_time = 10
 	c.nReduce = nReduce
 	files_stat := make(map[string]file_status)
 	Nmap := 0

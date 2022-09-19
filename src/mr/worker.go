@@ -50,7 +50,7 @@ func Worker(mapf func(string, string) []KeyValue,
 
 	// uncomment to send the Example RPC to the coordinator.
 	for {
-		fmt.Printf("one loop!\n")
+		//fmt.Printf("one loop!\n")
 		args := GetWorkArgs{}
 		reply := GetWorkReply{}
 		ok := call("Coordinator.GetWork", &args, &reply)
@@ -63,28 +63,35 @@ func Worker(mapf func(string, string) []KeyValue,
 
 		if ok {
 			// reply.Y should be 100.
-			fmt.Printf("reply %v\n", reply)
+			// fmt.Printf("reply %v\n", reply)
 			if reply.MapOrReduce == "map" {
-				fmt.Printf("I is a map")
+				fmt.Printf("%v : Starting mapping %v\n", os.Getpid(), Filename)
 				do_map(Filename, MapTaskId, Nreduce, mapf)
 				args := NotifyMapEndArgs{Filename: Filename}
 				reply := NotifyMapEndReply{}
 				ok := call("Coordinator.NotifyMapEnd", &args, &reply)
 				if !ok {
 					fmt.Printf("Call to NotifyMapEnd failed!\n")
+				} else {
+					fmt.Printf("%v : notified end mapping %v\n", os.Getpid(), Filename)
 				}
+
 			} else if reply.MapOrReduce == "reduce" {
-				fmt.Printf("It is a reduce %v", reply.MapOrReduce)
+				fmt.Printf("%v : Starting reduce %v\n", os.Getpid(), ReduceId)
 				do_reduce(ReduceId, Nmap, Nreduce, reducef)
 				args := NotifyReduceEndArgs{ReduceId: ReduceId}
 				reply := NotifyReduceEndReply{}
 				ok := call("Coordinator.NotifyReduceEnd", &args, &reply)
 				if !ok {
 					fmt.Printf("Call to NotifyReduceEnd failed!\n")
+				} else {
+					fmt.Printf("%v : notified end reduce %v\n", os.Getpid(), ReduceId)
 				}
+			} else {
+				fmt.Printf("%v : wait\n", os.Getpid())
 			}
 		} else {
-			fmt.Printf("call to GetWork failed!\n")
+			fmt.Printf("%v : call to GetWork failed!\n", os.Getpid())
 		}
 
 		time.Sleep(8 * time.Second)
@@ -132,7 +139,7 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 	sockname := coordinatorSock()
 	c, err := rpc.DialHTTP("unix", sockname)
 	if err != nil {
-		log.Fatal("dialing:", err)
+		log.Fatalf("%v : dialing: %v", os.Getpid(), err)
 	}
 	defer c.Close()
 
@@ -154,7 +161,7 @@ func do_map(filename string, file_id int, nReduce int, mapf func(string, string)
 	if err != nil {
 		log.Fatalf("cannot open %v", filename)
 	} else {
-		log.Printf("opened %v", filename)
+		// log.Printf("opened %v", filename)
 	}
 	content, err := ioutil.ReadAll(file)
 	if err != nil {

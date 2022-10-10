@@ -254,8 +254,11 @@ func (rf *Raft) killed() bool {
 // heartsbeats recently.
 func (rf *Raft) ticker() {
 	start := time.Now()
-	rand.seed(time.Now().UnixNano())
-	timeout := (600.0 + rand.Intn(100)) * time.Millisecond
+	rand.Seed(time.Now().UnixNano())
+	// Note this time duration cast of intn 100 is strange, but
+	// seems it's the way it's supposed to work to be able to
+	// multiply with a time.timeunit type...
+	timeout := (600 + time.Duration(rand.Intn(100))) * time.Millisecond
 	for rf.killed() == false {
 
 		// Your code here to check if a leader election should

@@ -19,6 +19,7 @@ package raft
 
 import (
 	//	"bytes"
+	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -252,12 +253,27 @@ func (rf *Raft) killed() bool {
 // The ticker go routine starts a new election if this peer hasn't received
 // heartsbeats recently.
 func (rf *Raft) ticker() {
-	start := time.Now().Unix()
+	start := time.Now()
+	rand.seed(time.Now().UnixNano())
+	timeout := (600.0 + rand.Intn(100)) * time.Millisecond
 	for rf.killed() == false {
 
 		// Your code here to check if a leader election should
 		// be started and to randomize sleeping time using
 		// time.Sleep().
+
+		// Section 9.3 of extended raft :
+		// with 50ms of randomness ...
+		// We recommend using a conservative
+		// election timeout such as 150–300ms
+		//Because the tester limits you to 10 heartbeats per second,
+		// you will have to use an election timeout larger than the
+		// paper's 150 to 300 milliseconds, but not too large, because
+		// then you may fail to elect a leader within five seconds.
+
+		time.Sleep(10 * time.Millisecond)
+		t := time.Now()
+		elapsed := t.Sub(start)
 
 	}
 }

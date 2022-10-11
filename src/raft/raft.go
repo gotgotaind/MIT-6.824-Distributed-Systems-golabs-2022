@@ -29,10 +29,11 @@ import (
 )
 
 const (
-	LEADER int = 0
-	FOLLOWER int = 1
+	LEADER    int = 0
+	FOLLOWER  int = 1
 	CANDIDATE int = 2
 )
+
 //
 // as each Raft peer becomes aware that successive log entries are
 // committed, the peer should send an ApplyMsg to the service (or
@@ -74,11 +75,11 @@ type Raft struct {
 	// Your data here (2A, 2B, 2C).
 	// Look at the paper's Figure 2 for a description of what
 	// state a Raft server must maintain.
-	currentTerm int
-	votedFor    int
-	log         []logentry
+	currentTerm           int
+	votedFor              int
+	log                   []logentry
 	lastAppendEntriesTime time.Time
-	state		int	
+	state                 int
 }
 
 // return currentTerm and whether this server
@@ -261,7 +262,7 @@ func (rf *Raft) killed() bool {
 // heartsbeats recently.
 func (rf *Raft) ticker() {
 	rf.lastAppendEntriesTime = time.Now()
-	rf.state=FOLLOWER
+	rf.state = FOLLOWER
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -287,9 +288,13 @@ func (rf *Raft) ticker() {
 
 		time.Sleep(10 * time.Millisecond)
 		t := time.Now()
-		if( t.Sub(rf.lastAppendEntriesTime) > timeout ) {
-			rf.
-		} 
+		if t.Sub(rf.lastAppendEntriesTime) > timeout {
+			rf.state = CANDIDATE
+			rf.currentTerm++
+			rf.votedFor = rf.me
+			rf.lastAppendEntriesTime = time.Now()
+
+		}
 
 	}
 }

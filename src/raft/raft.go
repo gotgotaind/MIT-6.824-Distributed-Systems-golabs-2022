@@ -28,6 +28,11 @@ import (
 	"6.824/labrpc"
 )
 
+const (
+	LEADER int = 0
+	FOLLOWER int = 1
+	CANDIDATE int = 2
+)
 //
 // as each Raft peer becomes aware that successive log entries are
 // committed, the peer should send an ApplyMsg to the service (or
@@ -72,6 +77,8 @@ type Raft struct {
 	currentTerm int
 	votedFor    int
 	log         []logentry
+	lastAppendEntriesTime time.Time
+	state		int	
 }
 
 // return currentTerm and whether this server
@@ -253,12 +260,16 @@ func (rf *Raft) killed() bool {
 // The ticker go routine starts a new election if this peer hasn't received
 // heartsbeats recently.
 func (rf *Raft) ticker() {
-	start := time.Now()
+	rf.lastAppendEntriesTime = time.Now()
+	rf.state=FOLLOWER
+
 	rand.Seed(time.Now().UnixNano())
+
 	// Note this time duration cast of intn 100 is strange, but
 	// seems it's the way it's supposed to work to be able to
 	// multiply with a time.timeunit type...
 	timeout := (600 + time.Duration(rand.Intn(100))) * time.Millisecond
+
 	for rf.killed() == false {
 
 		// Your code here to check if a leader election should
@@ -276,7 +287,9 @@ func (rf *Raft) ticker() {
 
 		time.Sleep(10 * time.Millisecond)
 		t := time.Now()
-		elapsed := t.Sub(start)
+		if( t.Sub(rf.lastAppendEntriesTime) > timeout ) {
+			rf.
+		} 
 
 	}
 }

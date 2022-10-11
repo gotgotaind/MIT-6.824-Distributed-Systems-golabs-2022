@@ -293,6 +293,16 @@ func (rf *Raft) ticker() {
 			rf.currentTerm++
 			rf.votedFor = rf.me
 			rf.lastAppendEntriesTime = time.Now()
+			for server, peer := range rf.peers {
+				args := RequestVoteArgs{
+					term:         rf.currentTerm,
+					candidateId:  rf.me,
+					lastLogIndex: len(rf.log),
+					lastLogTerm:  rf.log[len(rf.log)-1].term}
+				reply := RequestVoteReply{}
+
+				go rf.sendRequestVote(server, &args, &reply)
+			}
 
 		}
 

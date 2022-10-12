@@ -156,10 +156,10 @@ func (rf *Raft) Snapshot(index int, snapshot []byte) {
 //
 type RequestVoteArgs struct {
 	// Your data here (2A, 2B).
-	term         int
-	candidateId  int
-	lastLogIndex int
-	lastLogTerm  int
+	Term         int
+	CandidateId  int
+	LastLogIndex int
+	LastLogTerm  int
 }
 
 //
@@ -168,8 +168,8 @@ type RequestVoteArgs struct {
 //
 type RequestVoteReply struct {
 	// Your data here (2A).
-	term        int
-	voteGranted int
+	Term        int
+	VoteGranted int
 }
 
 //
@@ -271,6 +271,8 @@ func (rf *Raft) ticker() {
 	// multiply with a time.timeunit type...
 	timeout := (600 + time.Duration(rand.Intn(100))) * time.Millisecond
 
+	var replies []*RequestVoteReply
+
 	for rf.killed() == false {
 
 		// Your code here to check if a leader election should
@@ -288,23 +290,33 @@ func (rf *Raft) ticker() {
 
 		time.Sleep(10 * time.Millisecond)
 		t := time.Now()
-		if t.Sub(rf.lastAppendEntriesTime) > timeout {
-			rf.state = CANDIDATE
-			rf.currentTerm++
-			rf.votedFor = rf.me
-			rf.lastAppendEntriesTime = time.Now()
-			for server, peer := range rf.peers {
-				args := RequestVoteArgs{
-					term:         rf.currentTerm,
-					candidateId:  rf.me,
-					lastLogIndex: len(rf.log),
-					lastLogTerm:  rf.log[len(rf.log)-1].term}
-				reply := RequestVoteReply{}
 
-				go rf.sendRequestVote(server, &args, &reply)
+		switch rf.state {
+		case FOLLOWER:
+			if t.Sub(rf.lastAppendEntriesTime) > timeout {
+				rf.state = CANDIDATE
+				rf.currentTerm++
+				rf.votedFor = rf.me
+				rf.lastAppendEntriesTime = time.Now()
+				replies = make([]*RequestVoteReply, len(rf.peers))
+				for peer_id, peer := range rf.peers {
+					args := RequestVoteArgs{
+						Term:         rf.currentTerm,
+						CandidateId:  rf.me,
+						LastLogIndex: len(rf.log),
+						LastLogTerm:  rf.log[len(rf.log)-1].term}
+					replies[peer_id] = &RequestVoteReply{VoteGranted: -1, Term: -1}
+
+					go rf.sendRequestVote(peer_id, &args, replies[peer_id])
+				}
+
 			}
-
-		}
+		case CANDIDATE:
+			// count votes
+			votes=1
+			for peer_id := 0; peer_id < len(rf.peers) ; peer_id++ {
+				if(replies[peer_id].Term == )
+			} 
 
 	}
 }

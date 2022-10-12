@@ -258,6 +258,25 @@ func (rf *Raft) killed() bool {
 	return z == 1
 }
 
+func (rf *Raft) start_election(replies []*RequestVoteReply) {
+	rf.currentTerm++
+	rf.votedFor = rf.me
+	rf.lastAppendEntriesTime = time.Now()
+	replies = make([]*RequestVoteReply, len(rf.peers))
+	for peer_id, _ := range rf.peers {
+		if peer_id != rf.me {
+			args := RequestVoteArgs{
+				Term:         rf.currentTerm,
+				CandidateId:  rf.me,
+				LastLogIndex: len(rf.log),
+				LastLogTerm:  rf.log[len(rf.log)-1].term}
+			replies[peer_id] = &RequestVoteReply{VoteGranted: -1, Term: -1}
+
+			go rf.sendRequestVote(peer_id, &args, replies[peer_id])
+		}
+	}
+}
+
 // The ticker go routine starts a new election if this peer hasn't received
 // heartsbeats recently.
 func (rf *Raft) ticker() {
@@ -295,28 +314,28 @@ func (rf *Raft) ticker() {
 		case FOLLOWER:
 			if t.Sub(rf.lastAppendEntriesTime) > timeout {
 				rf.state = CANDIDATE
-				rf.currentTerm++
-				rf.votedFor = rf.me
-				rf.lastAppendEntriesTime = time.Now()
-				replies = make([]*RequestVoteReply, len(rf.peers))
-				for peer_id, peer := range rf.peers {
-					args := RequestVoteArgs{
-						Term:         rf.currentTerm,
-						CandidateId:  rf.me,
-						LastLogIndex: len(rf.log),
-						LastLogTerm:  rf.log[len(rf.log)-1].term}
-					replies[peer_id] = &RequestVoteReply{VoteGranted: -1, Term: -1}
-
-					go rf.sendRequestVote(peer_id, &args, replies[peer_id])
-				}
-
+				rf.start_election(replies)
 			}
 		case CANDIDATE:
 			// count votes
-			votes=1
-			for peer_id := 0; peer_id < len(rf.peers) ; peer_id++ {
-				if(replies[peer_id].Term == )
-			} 
+			votes := 1
+			for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
+				if replies[peer_id].Term == rf.currentTerm {
+					votes++
+				}
+			}
+
+			// if vote majority, become leader
+			if votes > len(rf.peers)/2 {
+				rf.state = LEADER
+			}
+
+			// if elections timeout, restart elections
+			if t.Sub(rf.lastAppendEntriesTime) > timeout {
+				rf.start_election(replies)
+			}
+
+		}
 
 	}
 }
@@ -350,4 +369,35 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	go rf.ticker()
 
 	return rf
+}
+
+//
+// AppendEntries RPC arguments structure.
+// field names must start with capital letters!
+//
+type AppendEntriesArgs struct {
+	// Your data here (2A, 2B).
+	Term         int
+	LeaderId     int
+	PrevLogIndex int
+	PrevLogTerm  int
+	Entries      []logentry
+	LeaderCommit int
+}
+
+//
+// AppendEntries RPC reply structure.
+// field names must start with capital letters!
+//
+type AppendEntriesReply struct {
+	// Your data here (2A).
+	Term    int
+	Success int
+}
+
+//
+// AppendEntries RPC handler.
+//
+func (rf *Raft) AppendEntries(args *RequestVoteArgs, reply *RequestVoteReply) {
+	// Your code here (2A, 2B).
 }

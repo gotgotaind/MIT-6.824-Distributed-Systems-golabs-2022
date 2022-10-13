@@ -398,6 +398,28 @@ type AppendEntriesReply struct {
 //
 // AppendEntries RPC handler.
 //
-func (rf *Raft) AppendEntries(args *RequestVoteArgs, reply *RequestVoteReply) {
+func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
 	// Your code here (2A, 2B).
+
+	// Reply false if term < currentTerm
+	if args.Term < rf.currentTerm {
+		return false
+	}
+
+	// Reply false if log doesn’t contain an entry at prevLogIndex
+	// whose term matches prevLogTerm
+
+	// checks that rf.log is at least large enough, rf.log starts at 1
+	if len(rf.log) > args.PrevLogIndex {
+		if rf.log[args.PrevLogIndex].term == args.PrevLogTerm {
+			// good
+		} else {
+			return false
+		}
+	} else {
+		return false
+	}
+
+	return true
+
 }

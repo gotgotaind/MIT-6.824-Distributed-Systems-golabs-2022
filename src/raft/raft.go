@@ -420,6 +420,37 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 		return false
 	}
 
+	// If an existing entry conflicts with a new one (same index
+	// but different terms), delete the existing entry and all that
+	// follow it
+	delete_from := -1
+	for entry_index, entry := range rf.log {
+		if len(args.Entries) > entry_index {
+			if args.Entries[entry_index].term != entry.term {
+				delete_from = entry_index
+				break
+			}
+		} else {
+			break
+		}
+	}
+	var new_log []logentry
+	if delete_from >= 0 {
+		new_log = make([]logentry, delete_from)
+		for i := 0; i < delete_from; i++ {
+			new_log[i] = rf.log[i]
+		}
+	}
+	rf.log = new_log
+
+	// Append any new entries not already in the log
+	for i := len(rf.log); i < len(args.Entries); i++ {
+		rf.log = append(rf.log, args.Entries[i])
+	}
+
+	// If leaderCommit > commitIndex, set commitIndex =
+	// min(leaderCommit, index of last new entry)
+
 	return true
 
 }

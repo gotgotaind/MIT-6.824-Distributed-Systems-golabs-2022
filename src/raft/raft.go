@@ -400,6 +400,7 @@ type AppendEntriesReply struct {
 //
 func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
 	// Your code here (2A, 2B).
+	rf.lastAppendEntriesTime = time.Now()
 
 	// Reply false if term < currentTerm
 	if args.Term < rf.currentTerm {

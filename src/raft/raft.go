@@ -79,6 +79,7 @@ type Raft struct {
 	votedFor              int
 	log                   []logentry
 	lastAppendEntriesTime time.Time
+	electionTime          time.Time
 	state                 int
 }
 
@@ -261,7 +262,7 @@ func (rf *Raft) killed() bool {
 func (rf *Raft) start_election(replies []*RequestVoteReply) {
 	rf.currentTerm++
 	rf.votedFor = rf.me
-	rf.lastAppendEntriesTime = time.Now()
+	rf.electionTime = time.Now()
 	replies = make([]*RequestVoteReply, len(rf.peers))
 	for peer_id, _ := range rf.peers {
 		if peer_id != rf.me {
@@ -330,11 +331,26 @@ func (rf *Raft) ticker() {
 				rf.state = LEADER
 			}
 
-			// if elections timeout, restart elections
-			if t.Sub(rf.lastAppendEntriesTime) > timeout {
-				rf.start_election(replies)
+			// if AppendEntries RPC received from new leader: convert to
+			// follower
+			if rf.lastAppendEntriesTime.After(rf.electionTime) {
+				rf.state = FOLLOWER
 			}
 
+			// if elections timeout, restart elections
+			if t.Sub(rf.electionTime) > timeout {
+				rf.start_election(replies)
+			}
+		case LEADER:
+			// send heartbeat
+			for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
+				if peer_id != rf.me {
+					args := AppendEntriesArgs{
+						Entries: make([]logentry, 0)}
+					reply := AppendEntriesReply{}
+					go rf.peers[peer_id].Call("Raft.RequestVote", args, reply)
+				}
+			}
 		}
 
 	}
@@ -401,6 +417,12 @@ type AppendEntriesReply struct {
 func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
 	// Your code here (2A, 2B).
 	rf.lastAppendEntriesTime = time.Now()
+
+	// If args.Entries is empty it means it's a heartbeat.
+	// I decided to return true. Not sure it's good...
+	if len(args.Entries) == 0 {
+		return true
+	}
 
 	// Reply false if term < currentTerm
 	if args.Term < rf.currentTerm {

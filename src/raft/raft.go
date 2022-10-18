@@ -34,6 +34,12 @@ const (
 	CANDIDATE int = 2
 )
 
+const (
+	ELECTION_TIMEOUT        = 600
+	RANDOM_ELECTION_TIMEOUT = 100
+	HEARTBEAT_FREQUENCY     = ELECTION_TIMEOUT / 2
+)
+
 //
 // as each Raft peer becomes aware that successive log entries are
 // committed, the peer should send an ApplyMsg to the service (or
@@ -90,6 +96,12 @@ func (rf *Raft) GetState() (int, bool) {
 	var term int
 	var isleader bool
 	// Your code here (2A).
+	term = rf.currentTerm
+	if rf.state == LEADER {
+		isleader = true
+	} else {
+		isleader = false
+	}
 	return term, isleader
 }
 
@@ -259,7 +271,7 @@ func (rf *Raft) killed() bool {
 	return z == 1
 }
 
-func (rf *Raft) start_election(replies []*RequestVoteReply) {
+func (rf *Raft) start_election(replies *[]RequestVoteReply) {
 	rf.currentTerm++
 	rf.votedFor = rf.me
 	rf.electionTime = time.Now()
@@ -269,11 +281,16 @@ func (rf *Raft) start_election(replies []*RequestVoteReply) {
 			args := RequestVoteArgs{
 				Term:         rf.currentTerm,
 				CandidateId:  rf.me,
-				LastLogIndex: len(rf.log),
-				LastLogTerm:  rf.log[len(rf.log)-1].term}
-			replies[peer_id] = &RequestVoteReply{VoteGranted: -1, Term: -1}
+				LastLogIndex: len(rf.log) - 1,
+			}
+			// if len rf.log == 0 it means rf.log is null, and it has no defined term
+			if len(rf.log) > 0 {
+				args.LastLogTerm = rf.log[len(rf.log)-1].term
+			}
+			replies_array[peer_id] = RequestVoteReply{VoteGranted: -1, Term: -1}
 
-			go rf.sendRequestVote(peer_id, &args, replies[peer_id])
+			replies = &replies_array
+			go rf.sendRequestVote(peer_id, &args, &replies_array[peer_id])
 		}
 	}
 }
@@ -289,9 +306,9 @@ func (rf *Raft) ticker() {
 	// Note this time duration cast of intn 100 is strange, but
 	// seems it's the way it's supposed to work to be able to
 	// multiply with a time.timeunit type...
-	timeout := (600 + time.Duration(rand.Intn(100))) * time.Millisecond
+	timeout := (ELECTION_TIMEOUT + time.Duration(rand.Intn(RANDOM_ELECTION_TIMEOUT))) * time.Millisecond
 
-	var replies []*RequestVoteReply
+	var replies []RequestVoteReply
 
 	for rf.killed() == false {
 
@@ -315,7 +332,7 @@ func (rf *Raft) ticker() {
 		case FOLLOWER:
 			if t.Sub(rf.lastAppendEntriesTime) > timeout {
 				rf.state = CANDIDATE
-				rf.start_election(replies)
+				rf.start_election(&replies)
 			}
 		case CANDIDATE:
 			// count votes
@@ -422,6 +439,10 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	// I decided to return true. Not sure it's good...
 	if len(args.Entries) == 0 {
 		return true
+	if rf.state == CANDIDATE {
+		if args.Term >= rf.currentTerm {
+			rf.state = FOLLOWER
+		}
 	}
 
 	// Reply false if term < currentTerm

@@ -19,6 +19,8 @@ package raft
 
 import (
 	//	"bytes"
+	"fmt"
+	"log"
 	"math/rand"
 	"sync"
 	"sync/atomic"
@@ -39,6 +41,26 @@ const (
 	RANDOM_ELECTION_TIMEOUT = 100
 	HEARTBEAT_FREQUENCY     = ELECTION_TIMEOUT / 2
 )
+
+var debugStart time.Time
+var debug int
+
+func init() {
+	debugStart = time.Now()
+	debug = 2
+
+	log.SetFlags(log.Flags()&^(log.Ldate|log.Ltime) | log.Lshortfile)
+}
+
+func debog(format string, a ...interface{}) {
+	if debug >= 1 {
+		time := time.Since(debugStart).Microseconds()
+		time /= 100
+		prefix := fmt.Sprintf("%06d ", time)
+		format = prefix + format
+		log.Printf(format, a...)
+	}
+}
 
 //
 // as each Raft peer becomes aware that successive log entries are
@@ -272,10 +294,12 @@ func (rf *Raft) killed() bool {
 }
 
 func (rf *Raft) start_election(replies *[]RequestVoteReply) {
+	debog("R%d In start_election", rf.me)
 	rf.currentTerm++
 	rf.votedFor = rf.me
 	rf.electionTime = time.Now()
-	replies = make([]*RequestVoteReply, len(rf.peers))
+	replies_arr := make([]RequestVoteReply, len(rf.peers))
+	replies = &replies_arr
 	for peer_id, _ := range rf.peers {
 		if peer_id != rf.me {
 			args := RequestVoteArgs{
@@ -287,10 +311,9 @@ func (rf *Raft) start_election(replies *[]RequestVoteReply) {
 			if len(rf.log) > 0 {
 				args.LastLogTerm = rf.log[len(rf.log)-1].term
 			}
-			replies_array[peer_id] = RequestVoteReply{VoteGranted: -1, Term: -1}
+			replies_arr[peer_id] = RequestVoteReply{VoteGranted: -1, Term: -1}
 
-			replies = &replies_array
-			go rf.sendRequestVote(peer_id, &args, &replies_array[peer_id])
+			go rf.sendRequestVote(peer_id, &args, &replies_arr[peer_id])
 		}
 	}
 }
@@ -298,6 +321,8 @@ func (rf *Raft) start_election(replies *[]RequestVoteReply) {
 // The ticker go routine starts a new election if this peer hasn't received
 // heartsbeats recently.
 func (rf *Raft) ticker() {
+	debog("R%d In ticker! Btw I've been told I should start at least 2...", rf.me)
+
 	rf.lastAppendEntriesTime = time.Now()
 	rf.state = FOLLOWER
 
@@ -356,7 +381,7 @@ func (rf *Raft) ticker() {
 
 			// if elections timeout, restart elections
 			if t.Sub(rf.electionTime) > timeout {
-				rf.start_election(replies)
+				rf.start_election(&replies)
 			}
 		case LEADER:
 			// send heartbeat
@@ -435,14 +460,16 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	// Your code here (2A, 2B).
 	rf.lastAppendEntriesTime = time.Now()
 
-	// If args.Entries is empty it means it's a heartbeat.
-	// I decided to return true. Not sure it's good...
-	if len(args.Entries) == 0 {
-		return true
 	if rf.state == CANDIDATE {
 		if args.Term >= rf.currentTerm {
 			rf.state = FOLLOWER
 		}
+	}
+
+	// If args.Entries is empty it means it's a heartbeat.
+	// I decided to return true. Not sure it's good...
+	if len(args.Entries) == 0 {
+		return true
 	}
 
 	// Reply false if term < currentTerm

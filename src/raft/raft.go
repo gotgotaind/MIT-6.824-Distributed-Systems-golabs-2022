@@ -86,8 +86,8 @@ type ApplyMsg struct {
 }
 
 type logentry struct {
-	command string
-	term    int
+	Command string
+	Term    int
 }
 
 //
@@ -109,6 +109,7 @@ type Raft struct {
 	lastAppendEntriesTime time.Time
 	electionTime          time.Time
 	state                 int
+	voteReplies           []RequestVoteReply
 }
 
 // return currentTerm and whether this server
@@ -204,7 +205,7 @@ type RequestVoteArgs struct {
 type RequestVoteReply struct {
 	// Your data here (2A).
 	Term        int
-	VoteGranted int
+	VoteGranted bool
 }
 
 //
@@ -212,6 +213,15 @@ type RequestVoteReply struct {
 //
 func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	// Your code here (2A, 2B).
+	if args.Term < rf.currentTerm {
+		reply.VoteGranted = false
+	}
+
+	if rf.votedFor == -1 {
+		reply.VoteGranted = true
+		reply.Term = rf.currentTerm
+	}
+
 }
 
 //
@@ -293,13 +303,12 @@ func (rf *Raft) killed() bool {
 	return z == 1
 }
 
-func (rf *Raft) start_election(replies *[]RequestVoteReply) {
+func (rf *Raft) start_election() {
 	debog("R%d In start_election", rf.me)
 	rf.currentTerm++
 	rf.votedFor = rf.me
 	rf.electionTime = time.Now()
-	replies_arr := make([]RequestVoteReply, len(rf.peers))
-	replies = &replies_arr
+
 	for peer_id, _ := range rf.peers {
 		if peer_id != rf.me {
 			args := RequestVoteArgs{
@@ -309,11 +318,11 @@ func (rf *Raft) start_election(replies *[]RequestVoteReply) {
 			}
 			// if len rf.log == 0 it means rf.log is null, and it has no defined term
 			if len(rf.log) > 0 {
-				args.LastLogTerm = rf.log[len(rf.log)-1].term
+				args.LastLogTerm = rf.log[len(rf.log)-1].Term
 			}
-			replies_arr[peer_id] = RequestVoteReply{VoteGranted: -1, Term: -1}
+			rf.voteReplies[peer_id] = RequestVoteReply{VoteGranted: false, Term: -1}
 
-			go rf.sendRequestVote(peer_id, &args, &replies_arr[peer_id])
+			go rf.sendRequestVote(peer_id, &args, &rf.voteReplies[peer_id])
 		}
 	}
 }
@@ -325,6 +334,7 @@ func (rf *Raft) ticker() {
 
 	rf.lastAppendEntriesTime = time.Now()
 	rf.state = FOLLOWER
+	rf.voteReplies = make([]RequestVoteReply, len(rf.peers))
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -332,8 +342,6 @@ func (rf *Raft) ticker() {
 	// seems it's the way it's supposed to work to be able to
 	// multiply with a time.timeunit type...
 	timeout := (ELECTION_TIMEOUT + time.Duration(rand.Intn(RANDOM_ELECTION_TIMEOUT))) * time.Millisecond
-
-	var replies []RequestVoteReply
 
 	for rf.killed() == false {
 
@@ -357,13 +365,13 @@ func (rf *Raft) ticker() {
 		case FOLLOWER:
 			if t.Sub(rf.lastAppendEntriesTime) > timeout {
 				rf.state = CANDIDATE
-				rf.start_election(&replies)
+				rf.start_election()
 			}
 		case CANDIDATE:
 			// count votes
 			votes := 1
 			for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
-				if replies[peer_id].Term == rf.currentTerm {
+				if rf.voteReplies[peer_id].VoteGranted == true {
 					votes++
 				}
 			}
@@ -381,7 +389,7 @@ func (rf *Raft) ticker() {
 
 			// if elections timeout, restart elections
 			if t.Sub(rf.electionTime) > timeout {
-				rf.start_election(&replies)
+				rf.start_election()
 			}
 		case LEADER:
 			// send heartbeat
@@ -390,7 +398,7 @@ func (rf *Raft) ticker() {
 					args := AppendEntriesArgs{
 						Entries: make([]logentry, 0)}
 					reply := AppendEntriesReply{}
-					go rf.peers[peer_id].Call("Raft.RequestVote", args, reply)
+					go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
 				}
 			}
 		}
@@ -456,7 +464,7 @@ type AppendEntriesReply struct {
 //
 // AppendEntries RPC handler.
 //
-func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
+func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) {
 	// Your code here (2A, 2B).
 	rf.lastAppendEntriesTime = time.Now()
 
@@ -469,12 +477,12 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	// If args.Entries is empty it means it's a heartbeat.
 	// I decided to return true. Not sure it's good...
 	if len(args.Entries) == 0 {
-		return true
+		//return true
 	}
 
 	// Reply false if term < currentTerm
 	if args.Term < rf.currentTerm {
-		return false
+		//return false
 	}
 
 	// Reply false if log doesn’t contain an entry at prevLogIndex
@@ -482,13 +490,13 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 
 	// checks that rf.log is at least large enough, rf.log starts at 1
 	if len(rf.log) > args.PrevLogIndex {
-		if rf.log[args.PrevLogIndex].term == args.PrevLogTerm {
+		if rf.log[args.PrevLogIndex].Term == args.PrevLogTerm {
 			// good
 		} else {
-			return false
+			//return false
 		}
 	} else {
-		return false
+		//return false
 	}
 
 	// If an existing entry conflicts with a new one (same index
@@ -497,7 +505,7 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	delete_from := -1
 	for entry_index, entry := range rf.log {
 		if len(args.Entries) > entry_index {
-			if args.Entries[entry_index].term != entry.term {
+			if args.Entries[entry_index].Term != entry.Term {
 				delete_from = entry_index
 				break
 			}
@@ -522,6 +530,6 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	// If leaderCommit > commitIndex, set commitIndex =
 	// min(leaderCommit, index of last new entry)
 
-	return true
+	//return true
 
 }

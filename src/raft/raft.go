@@ -378,25 +378,30 @@ func (rf *Raft) ticker() {
 
 			// if vote majority, become leader
 			if votes > len(rf.peers)/2 {
+				debog("R%d %v Got majority of votes (%d), becoming LEADER!", rf.me, rf.state, votes)
 				rf.state = LEADER
+			} else {
+				// if elections timeout, restart elections
+				if t.Sub(rf.electionTime) > timeout {
+					debog("R%d %v Election timeout, restarting elections", rf.me, rf.state)
+					rf.start_election()
+				}
 			}
-
 			// if AppendEntries RPC received from new leader: convert to
 			// follower
-			if rf.lastAppendEntriesTime.After(rf.electionTime) {
-				rf.state = FOLLOWER
-			}
+			// already managed inside appendentries
+			// if rf.lastAppendEntriesTime.After(rf.electionTime) {
+			//	rf.state = FOLLOWER
+			// }
 
-			// if elections timeout, restart elections
-			if t.Sub(rf.electionTime) > timeout {
-				rf.start_election()
-			}
 		case LEADER:
 			// send heartbeat
+			// should only send them at HEARTBEATFREQUENCY THOUGH
+			// should check previous replies in case their was a more recent term reply
 			for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
 				if peer_id != rf.me {
 					args := AppendEntriesArgs{
-						Entries: make([]logentry, 0)}
+						Entries: make([]logentry, 0), Term: rf.currentTerm}
 					reply := AppendEntriesReply{}
 					go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
 				}
@@ -458,7 +463,7 @@ type AppendEntriesArgs struct {
 type AppendEntriesReply struct {
 	// Your data here (2A).
 	Term    int
-	Success int
+	Success bool
 }
 
 //
@@ -474,14 +479,23 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 		}
 	}
 
+	if args.Term > rf.currentTerm {
+		rf.currentTerm = args.Term
+	}
+	reply.Term = rf.currentTerm
+
 	// If args.Entries is empty it means it's a heartbeat.
 	// I decided to return true. Not sure it's good...
 	if len(args.Entries) == 0 {
+		reply.Success = true
+		return
 		//return true
 	}
 
 	// Reply false if term < currentTerm
 	if args.Term < rf.currentTerm {
+		reply.Success = false
+		return
 		//return false
 	}
 
@@ -492,11 +506,15 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	if len(rf.log) > args.PrevLogIndex {
 		if rf.log[args.PrevLogIndex].Term == args.PrevLogTerm {
 			// good
+			reply.Success = true
+
 		} else {
 			//return false
+			reply.Success = false
 		}
 	} else {
 		//return false
+		reply.Success = false
 	}
 
 	// If an existing entry conflicts with a new one (same index

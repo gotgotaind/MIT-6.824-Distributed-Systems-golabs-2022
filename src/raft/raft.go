@@ -215,13 +215,20 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	// Your code here (2A, 2B).
 	if args.Term < rf.currentTerm {
 		reply.VoteGranted = false
-	}
-
-	if rf.votedFor == -1 {
+	} else if args.Term == rf.currentTerm {
+		if rf.votedFor == -1 {
+			reply.VoteGranted = true
+			rf.votedFor = args.CandidateId
+		} else {
+			reply.VoteGranted = false
+		}
+	} else if args.Term > rf.currentTerm {
+		rf.currentTerm = args.Term
+		rf.state = FOLLOWER
 		reply.VoteGranted = true
-		reply.Term = rf.currentTerm
+		rf.votedFor = args.CandidateId
 	}
-
+	reply.Term = rf.currentTerm
 }
 
 //

@@ -103,13 +103,14 @@ type Raft struct {
 	// Your data here (2A, 2B, 2C).
 	// Look at the paper's Figure 2 for a description of what
 	// state a Raft server must maintain.
-	currentTerm           int
-	votedFor              int
-	log                   []logentry
-	lastAppendEntriesTime time.Time
-	electionTime          time.Time
-	state                 int
-	voteReplies           []RequestVoteReply
+	currentTerm                   int
+	votedFor                      int
+	log                           []logentry
+	lastAppendEntriesReceivedTime time.Time
+	lastAppendEntriesSentTime     time.Time
+	electionTime                  time.Time
+	state                         int
+	voteReplies                   []RequestVoteReply
 }
 
 // return currentTerm and whether this server
@@ -339,10 +340,6 @@ func (rf *Raft) start_election() {
 func (rf *Raft) ticker() {
 	debog("R%d In ticker! Btw I've been told I should start at least 2...", rf.me)
 
-	rf.lastAppendEntriesTime = time.Now()
-	rf.state = FOLLOWER
-	rf.voteReplies = make([]RequestVoteReply, len(rf.peers))
-
 	rand.Seed(time.Now().UnixNano())
 
 	// Note this time duration cast of intn 100 is strange, but
@@ -370,7 +367,7 @@ func (rf *Raft) ticker() {
 
 		switch rf.state {
 		case FOLLOWER:
-			if t.Sub(rf.lastAppendEntriesTime) > timeout {
+			if t.Sub(rf.lastAppendEntriesReceivedTime) > timeout {
 				rf.state = CANDIDATE
 				rf.start_election()
 			}
@@ -378,7 +375,7 @@ func (rf *Raft) ticker() {
 			// count votes
 			votes := 1
 			for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
-				if rf.voteReplies[peer_id].VoteGranted == true {
+				if rf.voteReplies[peer_id].VoteGranted {
 					votes++
 				}
 			}
@@ -387,6 +384,16 @@ func (rf *Raft) ticker() {
 			if votes > len(rf.peers)/2 {
 				debog("R%d %v Got majority of votes (%d), becoming LEADER!", rf.me, rf.state, votes)
 				rf.state = LEADER
+				rf.lastAppendEntriesSentTime = time.Now()
+				// copied from case leader. Update at both places if needed.
+				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
+					if peer_id != rf.me {
+						args := AppendEntriesArgs{
+							Entries: make([]logentry, 0), Term: rf.currentTerm}
+						reply := AppendEntriesReply{}
+						go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+					}
+				}
 			} else {
 				// if elections timeout, restart elections
 				if t.Sub(rf.electionTime) > timeout {
@@ -404,13 +411,18 @@ func (rf *Raft) ticker() {
 		case LEADER:
 			// send heartbeat
 			// should only send them at HEARTBEATFREQUENCY THOUGH
-			// should check previous replies in case their was a more recent term reply
-			for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
-				if peer_id != rf.me {
-					args := AppendEntriesArgs{
-						Entries: make([]logentry, 0), Term: rf.currentTerm}
-					reply := AppendEntriesReply{}
-					go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+			// Checking that a more recent term is seen nin a reply is managed in the AppendEntries server function
+			// block copied in case candidate, update also there id needed
+			if rf.lastAppendEntriesSentTime.Sub(time.Now()) > HEARTBEAT_FREQUENCY {
+				debog("R%d %v I'm the leader, sending heartbeats", rf.me, rf.state)
+				rf.lastAppendEntriesSentTime = time.Now()
+				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
+					if peer_id != rf.me {
+						args := AppendEntriesArgs{
+							Entries: make([]logentry, 0), Term: rf.currentTerm}
+						reply := AppendEntriesReply{}
+						go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+					}
 				}
 			}
 		}
@@ -439,6 +451,10 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	// Your initialization code here (2A, 2B, 2C).
 	rf.currentTerm = 0
 	rf.votedFor = -1
+	rf.lastAppendEntriesReceivedTime = time.Now()
+	rf.lastAppendEntriesSentTime = time.Now()
+	rf.state = FOLLOWER
+	rf.voteReplies = make([]RequestVoteReply, len(rf.peers))
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
@@ -478,7 +494,7 @@ type AppendEntriesReply struct {
 //
 func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) {
 	// Your code here (2A, 2B).
-	rf.lastAppendEntriesTime = time.Now()
+	rf.lastAppendEntriesReceivedTime = time.Now()
 
 	if rf.state == CANDIDATE {
 		if args.Term >= rf.currentTerm {

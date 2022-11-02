@@ -37,8 +37,8 @@ const (
 )
 
 const (
-	ELECTION_TIMEOUT        = 600
-	RANDOM_ELECTION_TIMEOUT = 100
+	ELECTION_TIMEOUT        = 600 * time.Millisecond
+	RANDOM_ELECTION_TIMEOUT = 100 * time.Millisecond
 	HEARTBEAT_FREQUENCY     = ELECTION_TIMEOUT / 2
 )
 
@@ -345,7 +345,8 @@ func (rf *Raft) ticker() {
 	// Note this time duration cast of intn 100 is strange, but
 	// seems it's the way it's supposed to work to be able to
 	// multiply with a time.timeunit type...
-	timeout := (ELECTION_TIMEOUT + time.Duration(rand.Intn(RANDOM_ELECTION_TIMEOUT))) * time.Millisecond
+	// timeout := (ELECTION_TIMEOUT + time.Duration(rand.Intn(RANDOM_ELECTION_TIMEOUT))) * time.Millisecond
+	timeout := (ELECTION_TIMEOUT + RANDOM_ELECTION_TIMEOUT)
 
 	for rf.killed() == false {
 

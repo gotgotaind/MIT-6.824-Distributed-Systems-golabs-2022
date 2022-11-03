@@ -214,6 +214,8 @@ type RequestVoteReply struct {
 //
 func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	// Your code here (2A, 2B).
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
 	if args.Term < rf.currentTerm {
 		reply.VoteGranted = false
 	} else if args.Term == rf.currentTerm {
@@ -313,9 +315,18 @@ func (rf *Raft) killed() bool {
 
 func (rf *Raft) start_election() {
 	debog("R%d In start_election", rf.me)
+	rf.mu.Lock()
+	rf.state = CANDIDATE
 	rf.currentTerm++
 	rf.votedFor = rf.me
 	rf.electionTime = time.Now()
+
+	for peer_id, _ := range rf.peers {
+		if peer_id != rf.me {
+			rf.voteReplies[peer_id] = RequestVoteReply{VoteGranted: false, Term: -1}
+		}
+	}
+	rf.mu.Unlock()
 
 	for peer_id, _ := range rf.peers {
 		if peer_id != rf.me {
@@ -328,7 +339,6 @@ func (rf *Raft) start_election() {
 			if len(rf.log) > 0 {
 				args.LastLogTerm = rf.log[len(rf.log)-1].Term
 			}
-			rf.voteReplies[peer_id] = RequestVoteReply{VoteGranted: false, Term: -1}
 
 			go rf.sendRequestVote(peer_id, &args, &rf.voteReplies[peer_id])
 		}
@@ -368,8 +378,10 @@ func (rf *Raft) ticker() {
 
 		switch rf.state {
 		case FOLLOWER:
-			if t.Sub(rf.lastAppendEntriesReceivedTime) > timeout {
-				rf.state = CANDIDATE
+			lastAppendEntriesFor := t.Sub(rf.lastAppendEntriesReceivedTime)
+			if lastAppendEntriesFor > HEARTBEAT_FREQUENCY {
+				debog("R%d Was follower but didn't receive any appendentries for %v which is more than HEARTBEAT_FREQUENCY %v. Starting election.", rf.me, lastAppendEntriesFor, HEARTBEAT_FREQUENCY)
+
 				rf.start_election()
 			}
 		case CANDIDATE:
@@ -397,8 +409,10 @@ func (rf *Raft) ticker() {
 				}
 			} else {
 				// if elections timeout, restart elections
-				if t.Sub(rf.electionTime) > timeout {
-					debog("R%d %v Election timeout, restarting elections", rf.me, rf.state)
+				LastElectionStartedFor := t.Sub(rf.electionTime)
+				debog("R%d I was in state %v, Last election was started for %v, did get only %d votes, restarting election", rf.me, rf.state, LastElectionStartedFor, votes)
+				if LastElectionStartedFor > timeout {
+					debog("R%d I was in state %v, Last election was started for %v, did get only %d votes, restarting election", rf.me, rf.state, LastElectionStartedFor, votes)
 					rf.start_election()
 				}
 			}
@@ -495,15 +509,20 @@ type AppendEntriesReply struct {
 //
 func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) {
 	// Your code here (2A, 2B).
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
 	rf.lastAppendEntriesReceivedTime = time.Now()
 
 	if rf.state == CANDIDATE {
+
 		if args.Term >= rf.currentTerm {
+			debog("R%d I'm candidate, but I received a heartbeat with term at least equal my current term, so getting back to follower", rf.me)
 			rf.state = FOLLOWER
 		}
 	}
 
 	if args.Term > rf.currentTerm {
+		debog("R%d Received an heartbeat with term superior than mine ( %v ). Updating my current term accordingly to %v", rf.me, rf.currentTerm, args.Term)
 		rf.currentTerm = args.Term
 	}
 	reply.Term = rf.currentTerm

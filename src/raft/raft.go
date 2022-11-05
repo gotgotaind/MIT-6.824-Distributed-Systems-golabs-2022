@@ -395,7 +395,7 @@ func (rf *Raft) ticker() {
 
 			// if vote majority, become leader
 			if votes > len(rf.peers)/2 {
-				debog("R%d %v Got majority of votes (%d), becoming LEADER!", rf.me, rf.state, votes)
+				debog("R%d %v Got majority of votes (%d/%d), becoming LEADER for term %v!", rf.me, rf.state, votes, len(rf.peers), rf.currentTerm)
 				rf.state = LEADER
 				rf.lastAppendEntriesSentTime = time.Now()
 				// copied from case leader. Update at both places if needed.
@@ -410,7 +410,7 @@ func (rf *Raft) ticker() {
 			} else {
 				// if elections timeout, restart elections
 				LastElectionStartedFor := t.Sub(rf.electionTime)
-				debog("R%d I was in state %v, Last election was started for %v, did get only %d votes, restarting election", rf.me, rf.state, LastElectionStartedFor, votes)
+				// debog("R%d I was in state %v, Last election was started for %v, did get only %d votes, restarting election", rf.me, rf.state, LastElectionStartedFor, votes)
 				if LastElectionStartedFor > timeout {
 					debog("R%d I was in state %v, Last election was started for %v, did get only %d votes, restarting election", rf.me, rf.state, LastElectionStartedFor, votes)
 					rf.start_election()

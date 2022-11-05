@@ -379,8 +379,8 @@ func (rf *Raft) ticker() {
 		switch rf.state {
 		case FOLLOWER:
 			lastAppendEntriesFor := t.Sub(rf.lastAppendEntriesReceivedTime)
-			if lastAppendEntriesFor > HEARTBEAT_FREQUENCY {
-				debog("R%d Was follower but didn't receive any appendentries for %v which is more than HEARTBEAT_FREQUENCY %v. Starting election.", rf.me, lastAppendEntriesFor, HEARTBEAT_FREQUENCY)
+			if lastAppendEntriesFor > HEARTBEAT_FREQUENCY*2 {
+				debog("R%d Was follower but didn't receive any appendentries for %v which is more than HEARTBEAT_FREQUENCY*2 %v. Starting election.", rf.me, lastAppendEntriesFor, HEARTBEAT_FREQUENCY*2)
 
 				rf.start_election()
 			}
@@ -402,7 +402,7 @@ func (rf *Raft) ticker() {
 				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
 					if peer_id != rf.me {
 						args := AppendEntriesArgs{
-							Entries: make([]logentry, 0), Term: rf.currentTerm}
+							Entries: make([]logentry, 0), Term: rf.currentTerm, LeaderId: rf.me}
 						reply := AppendEntriesReply{}
 						go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
 					}
@@ -434,7 +434,7 @@ func (rf *Raft) ticker() {
 				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
 					if peer_id != rf.me {
 						args := AppendEntriesArgs{
-							Entries: make([]logentry, 0), Term: rf.currentTerm}
+							Entries: make([]logentry, 0), Term: rf.currentTerm, LeaderId: rf.me}
 						reply := AppendEntriesReply{}
 						go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
 					}
@@ -512,6 +512,8 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
 	rf.lastAppendEntriesReceivedTime = time.Now()
+
+	debog("R%d I'm in state %v my term is %v, I received an appendentries with term %v from leaderId %v", rf.me, rf.state, rf.currentTerm, args.Term, args.LeaderId)
 
 	if rf.state == CANDIDATE {
 

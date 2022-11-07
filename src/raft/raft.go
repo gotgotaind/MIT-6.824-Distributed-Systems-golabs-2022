@@ -226,6 +226,8 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 			reply.VoteGranted = false
 		}
 	} else if args.Term > rf.currentTerm {
+		debog("R%d state %v received a request vote from CandidateId %v with term %v while my term is %v, reverting to follower, updating currentTerm and granting vote",
+			rf.me, rf.state, args.CandidateId, args.Term, rf.currentTerm)
 		rf.currentTerm = args.Term
 		rf.state = FOLLOWER
 		reply.VoteGranted = true
@@ -395,7 +397,7 @@ func (rf *Raft) ticker() {
 
 			// if vote majority, become leader
 			if votes > len(rf.peers)/2 {
-				debog("R%d %v Got majority of votes (%d/%d), becoming LEADER for term %v!", rf.me, rf.state, votes, len(rf.peers), rf.currentTerm)
+				debog("R%d in state %v Got majority of votes (%d/%d), becoming LEADER for term %v!", rf.me, rf.state, votes, len(rf.peers), rf.currentTerm)
 				rf.state = LEADER
 				rf.lastAppendEntriesSentTime = time.Now()
 				// copied from case leader. Update at both places if needed.

@@ -38,7 +38,7 @@ const (
 
 const (
 	ELECTION_TIMEOUT        = 600 * time.Millisecond
-	RANDOM_ELECTION_TIMEOUT = 100 * time.Millisecond
+	RANDOM_ELECTION_TIMEOUT = 100 // will be converted to milliseconds when randomized in make raft
 	HEARTBEAT_FREQUENCY     = ELECTION_TIMEOUT / 2
 )
 
@@ -220,14 +220,30 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 		reply.VoteGranted = false
 	} else if args.Term == rf.currentTerm {
 		if rf.votedFor == -1 {
+			debog("R%d state %v received a request vote from CandidateId %v with term %v while my term is %v, reseting lastappendentriestime and granting vote",
+				rf.me, rf.state, args.CandidateId, args.Term, rf.currentTerm)
+			rf.lastAppendEntriesReceivedTime = time.Now()
+			if rf.state != FOLLOWER {
+				debog("R%d state %v ERROR this should not happen. If votedfor is -1, I should be in FOLLOWER state")
+			}
 			reply.VoteGranted = true
 			rf.votedFor = args.CandidateId
 		} else {
-			reply.VoteGranted = false
+			if rf.votedFor != args.CandidateId {
+				debog("R%d state %v received a request vote from CandidateId %v with term %v while my term is %v, but I already voted for %v in this term. not reseting lastappendentriestime because it's not a call from the candidate I voted for. Refused to vote cause I already voted in this term to another candidate",
+					rf.me, rf.state, args.CandidateId, args.Term, rf.currentTerm, rf.votedFor)
+				reply.VoteGranted = false
+			} else {
+				debog("R%d state %v ERROR received a request vote from CandidateId %v with term %v while my term is %v, but I already voted for %v in this term. ERROR because I should not have received a vote request from the same server twice in the same term",
+					rf.me, rf.state, args.CandidateId, args.Term, rf.currentTerm, rf.votedFor)
+				reply.VoteGranted = false
+			}
+
 		}
 	} else if args.Term > rf.currentTerm {
-		debog("R%d state %v received a request vote from CandidateId %v with term %v while my term is %v, reverting to follower, updating currentTerm and granting vote",
+		debog("R%d state %v received a request vote from CandidateId %v with term %v while my term is %v, reverting to follower, updating currentTerm, reseting lastappendentriestime and granting vote",
 			rf.me, rf.state, args.CandidateId, args.Term, rf.currentTerm)
+		rf.lastAppendEntriesReceivedTime = time.Now()
 		rf.currentTerm = args.Term
 		rf.state = FOLLOWER
 		reply.VoteGranted = true
@@ -353,12 +369,7 @@ func (rf *Raft) ticker() {
 	debog("R%d In ticker! Btw I've been told I should start at least 2...", rf.me)
 
 	rand.Seed(time.Now().UnixNano())
-
-	// Note this time duration cast of intn 100 is strange, but
-	// seems it's the way it's supposed to work to be able to
-	// multiply with a time.timeunit type...
-	// timeout := (ELECTION_TIMEOUT + time.Duration(rand.Intn(RANDOM_ELECTION_TIMEOUT))) * time.Millisecond
-	timeout := (ELECTION_TIMEOUT + RANDOM_ELECTION_TIMEOUT)
+	election_timeout := ELECTION_TIMEOUT + time.Duration(rand.Intn(RANDOM_ELECTION_TIMEOUT))*time.Millisecond
 
 	for rf.killed() == false {
 
@@ -413,7 +424,7 @@ func (rf *Raft) ticker() {
 				// if elections timeout, restart elections
 				LastElectionStartedFor := t.Sub(rf.electionTime)
 				// debog("R%d I was in state %v, Last election was started for %v, did get only %d votes, restarting election", rf.me, rf.state, LastElectionStartedFor, votes)
-				if LastElectionStartedFor > timeout {
+				if LastElectionStartedFor > election_timeout {
 					debog("R%d I was in state %v, Last election was started for %v, did get only %d votes, restarting election", rf.me, rf.state, LastElectionStartedFor, votes)
 					rf.start_election()
 				}

@@ -241,7 +241,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 
 		}
 	} else if args.Term > rf.currentTerm {
-		debog("R%d state %v received a request vote from CandidateId %v with term %v while my term is %v, reverting to follower, updating currentTerm, reseting lastappendentriestime and granting vote",
+		debog("R%d state %v received a request vote from CandidateId %v with term %v while my term is %v, reseting state to follower, updating currentTerm, reseting lastappendentriestime and granting vote",
 			rf.me, rf.state, args.CandidateId, args.Term, rf.currentTerm)
 		rf.lastAppendEntriesReceivedTime = time.Now()
 		rf.currentTerm = args.Term
@@ -441,8 +441,9 @@ func (rf *Raft) ticker() {
 			// should only send them at HEARTBEATFREQUENCY THOUGH
 			// Checking that a more recent term is seen nin a reply is managed in the AppendEntries server function
 			// block copied in case candidate, update also there id needed
-			if rf.lastAppendEntriesSentTime.Sub(time.Now()) > HEARTBEAT_FREQUENCY {
-				debog("R%d %v I'm the leader, sending heartbeats", rf.me, rf.state)
+			lastAppendEntriesSentSince = rf.lastAppendEntriesSentTime.Sub(time.Now())
+			if lastAppendEntriesSentSince > HEARTBEAT_FREQUENCY {
+				debog("R%d %v I'm the leader, last appendentriessenttime was %v ago, sending heartbeats", rf.me, rf.state, rf.lastAppendEntriesSentSince)
 				rf.lastAppendEntriesSentTime = time.Now()
 				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
 					if peer_id != rf.me {

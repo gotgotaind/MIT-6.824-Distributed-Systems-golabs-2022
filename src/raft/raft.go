@@ -411,6 +411,7 @@ func (rf *Raft) ticker() {
 				debog("R%d in state %v Got majority of votes (%d/%d), becoming LEADER for term %v!", rf.me, rf.state, votes, len(rf.peers), rf.currentTerm)
 				rf.state = LEADER
 				rf.lastAppendEntriesSentTime = time.Now()
+				debog("R%d %v sending heartbeats", rf.me, rf.state)
 				// copied from case leader. Update at both places if needed.
 				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
 					if peer_id != rf.me {
@@ -441,9 +442,9 @@ func (rf *Raft) ticker() {
 			// should only send them at HEARTBEATFREQUENCY THOUGH
 			// Checking that a more recent term is seen nin a reply is managed in the AppendEntries server function
 			// block copied in case candidate, update also there id needed
-			lastAppendEntriesSentSince = rf.lastAppendEntriesSentTime.Sub(time.Now())
+			lastAppendEntriesSentSince := time.Since(rf.lastAppendEntriesSentTime)
 			if lastAppendEntriesSentSince > HEARTBEAT_FREQUENCY {
-				debog("R%d %v I'm the leader, last appendentriessenttime was %v ago, sending heartbeats", rf.me, rf.state, rf.lastAppendEntriesSentSince)
+				debog("R%d %v I'm the leader in term %v, last appendentriessenttime was %v ago, sending heartbeats", rf.me, rf.state, rf.currentTerm, lastAppendEntriesSentSince)
 				rf.lastAppendEntriesSentTime = time.Now()
 				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
 					if peer_id != rf.me {
@@ -451,8 +452,15 @@ func (rf *Raft) ticker() {
 							Entries: make([]logentry, 0), Term: rf.currentTerm, LeaderId: rf.me}
 						reply := AppendEntriesReply{}
 						go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+						// MOVE THAT somewhere else. Where we can check all appenentries replies. Can't wait...
+						// Probably needs to build an array of replies. Like we did for the election loop...
+						if reply.Term > rf.currentTerm {
+							debog("R%d %v I'm the leader in term %v, but I received a reply to a appendentriesrequest with a term %v  superior than mine. Setting back to follower and updating term.")
+						}
 					}
 				}
+			} else {
+				//debog("R%d %v I'm the leader, last appendentriessenttime was %v ago, not sending heartbeats", rf.me, rf.state, lastAppendEntriesSentSince)
 			}
 		}
 
@@ -540,6 +548,10 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	if args.Term > rf.currentTerm {
 		debog("R%d Received an heartbeat with term superior than mine ( %v ). Updating my current term accordingly to %v", rf.me, rf.currentTerm, args.Term)
 		rf.currentTerm = args.Term
+		if rf.state == LEADER {
+			debog("R%d Also I was leader for term %v, getting back to simple peasant...")
+			rf.state = FOLLOWER
+		}
 	}
 	reply.Term = rf.currentTerm
 

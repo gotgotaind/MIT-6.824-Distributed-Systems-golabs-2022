@@ -111,6 +111,7 @@ type Raft struct {
 	electionTime                  time.Time
 	state                         int
 	voteReplies                   []RequestVoteReply
+	appendEntriesReplies          []AppendEntriesReply
 }
 
 // return currentTerm and whether this server
@@ -403,8 +404,8 @@ func (rf *Raft) ticker() {
 					if peer_id != rf.me {
 						args := AppendEntriesArgs{
 							Entries: make([]logentry, 0), Term: rf.currentTerm}
-						reply := AppendEntriesReply{}
-						go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+						rf.appendEntriesReplies[peer_id] = AppendEntriesReply{Term: -1, Success: false}
+						go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &rf.appendEntriesReplies[peer_id])
 					}
 				}
 			} else {
@@ -428,15 +429,32 @@ func (rf *Raft) ticker() {
 			// should only send them at HEARTBEATFREQUENCY THOUGH
 			// Checking that a more recent term is seen nin a reply is managed in the AppendEntries server function
 			// block copied in case candidate, update also there id needed
-			if rf.lastAppendEntriesSentTime.Sub(time.Now()) > HEARTBEAT_FREQUENCY {
-				debog("R%d %v I'm the leader, sending heartbeats", rf.me, rf.state)
-				rf.lastAppendEntriesSentTime = time.Now()
-				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
-					if peer_id != rf.me {
-						args := AppendEntriesArgs{
-							Entries: make([]logentry, 0), Term: rf.currentTerm}
-						reply := AppendEntriesReply{}
-						go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+			rf.mu.Lock()
+			for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
+				if peer_id != rf.me {
+					replyTerm := rf.appendEntriesReplies[peer_id].Term
+					if replyTerm > rf.currentTerm {
+						debog("R%d %v I'm the leader, but received an appendEntriesReply from %v with term %v which is larger than mine ( %v ), reverting to follower and updating currentTerm.", rf.me, rf.state, peer_id, replyTerm)
+						rf.currentTerm = replyTerm
+						rf.state = FOLLOWER
+					}
+				}
+			}
+			rf.mu.Unlock()
+
+			if rf.state != LEADER {
+				debog("R%d %v Seems I was just demoted from leader because I received an appendentry reply with higher term than mine...", rf.me, rf.state)
+			} else {
+				if rf.lastAppendEntriesSentTime.Sub(time.Now()) > HEARTBEAT_FREQUENCY {
+					debog("R%d %v I'm the leader, sending heartbeats", rf.me, rf.state)
+					rf.lastAppendEntriesSentTime = time.Now()
+					for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
+						if peer_id != rf.me {
+							args := AppendEntriesArgs{
+								Entries: make([]logentry, 0), Term: rf.currentTerm}
+							rf.appendEntriesReplies[peer_id] = AppendEntriesReply{Term: -1, Success: false}
+							go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &rf.appendEntriesReplies[peer_id])
+						}
 					}
 				}
 			}
@@ -470,7 +488,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	rf.lastAppendEntriesSentTime = time.Now()
 	rf.state = FOLLOWER
 	rf.voteReplies = make([]RequestVoteReply, len(rf.peers))
-
+	rf.appendEntriesReplies = make([]AppendEntriesReply, len(rf.peers))
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
 

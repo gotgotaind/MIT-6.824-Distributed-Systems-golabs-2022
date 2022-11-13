@@ -30,11 +30,26 @@ import (
 	"6.824/labrpc"
 )
 
+type State int
+
 const (
-	LEADER    int = 0
-	FOLLOWER  int = 1
-	CANDIDATE int = 2
+	UNDEFINED State = 0
+	LEADER          = 1
+	FOLLOWER        = 2
+	CANDIDATE       = 3
 )
+
+func (s State) String() string {
+	switch s {
+	case LEADER:
+		return "LEADER"
+	case FOLLOWER:
+		return "FOLLOWER"
+	case CANDIDATE:
+		return "CANDIDATE"
+	}
+	return "unknown"
+}
 
 const (
 	ELECTION_TIMEOUT        = 600 * time.Millisecond
@@ -52,11 +67,12 @@ func init() {
 	log.SetFlags(log.Flags()&^(log.Ldate|log.Ltime) | log.Lshortfile)
 }
 
-func debog(format string, a ...interface{}) {
+func (rf *Raft) debog(format string, a ...interface{}) {
 	if debug >= 1 {
 		time := time.Since(debugStart).Microseconds()
-		time /= 100
-		prefix := fmt.Sprintf("%06d ", time)
+		ms := time / 1000
+		Ms := time % 1000
+		prefix := fmt.Sprintf("%09d %06d.%3d|id:%v|state:%s|Term:%v ", time, ms, Ms, rf.me, rf.state, rf.currentTerm)
 		format = prefix + format
 		log.Printf(format, a...)
 	}
@@ -109,8 +125,8 @@ type Raft struct {
 	lastAppendEntriesReceivedTime time.Time
 	lastAppendEntriesSentTime     time.Time
 	electionTime                  time.Time
-	state                         int
-	voteReplies                   []RequestVoteReply
+	state                         State
+	votes                         int
 }
 
 // return currentTerm and whether this server
@@ -217,32 +233,34 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
 	if args.Term < rf.currentTerm {
+		rf.debog("Received a request vote from CandidateId %v with term %v lower than mine, vote refused.",
+			args.CandidateId, args.Term)
 		reply.VoteGranted = false
 	} else if args.Term == rf.currentTerm {
 		if rf.votedFor == -1 {
-			debog("R%d state %v received a request vote from CandidateId %v with term %v while my term is %v, reseting lastappendentriestime and granting vote",
-				rf.me, rf.state, args.CandidateId, args.Term, rf.currentTerm)
+			rf.debog("Received a request vote from CandidateId %v with term %v, reseting lastappendentriestime and granting vote",
+				args.CandidateId, args.Term)
 			rf.lastAppendEntriesReceivedTime = time.Now()
 			if rf.state != FOLLOWER {
-				debog("R%d state %v ERROR this should not happen. If votedfor is -1, I should be in FOLLOWER state")
+				rf.debog("ERROR this should not happen. If votedfor is -1, I should be in FOLLOWER state")
 			}
 			reply.VoteGranted = true
 			rf.votedFor = args.CandidateId
 		} else {
 			if rf.votedFor != args.CandidateId {
-				debog("R%d state %v received a request vote from CandidateId %v with term %v while my term is %v, but I already voted for %v in this term. not reseting lastappendentriestime because it's not a call from the candidate I voted for. Refused to vote cause I already voted in this term to another candidate",
-					rf.me, rf.state, args.CandidateId, args.Term, rf.currentTerm, rf.votedFor)
+				rf.debog("Received a request vote from CandidateId %v with term %v, but I already voted for %v in this term. not reseting lastappendentriestime because it's not a call from the candidate I voted for. Refused to vote cause I already voted in this term to another candidate",
+					args.CandidateId, args.Term, rf.votedFor)
 				reply.VoteGranted = false
 			} else {
-				debog("R%d state %v ERROR received a request vote from CandidateId %v with term %v while my term is %v, but I already voted for %v in this term. ERROR because I should not have received a vote request from the same server twice in the same term",
-					rf.me, rf.state, args.CandidateId, args.Term, rf.currentTerm, rf.votedFor)
+				rf.debog("ERROR received a request vote from CandidateId %v with term %v while my term is %v, but I already voted for %v in this term. ERROR because I should not have received a vote request from the same server twice in the same term",
+					args.CandidateId, args.Term, rf.currentTerm, rf.votedFor)
 				reply.VoteGranted = false
 			}
 
 		}
 	} else if args.Term > rf.currentTerm {
-		debog("R%d state %v received a request vote from CandidateId %v with term %v while my term is %v, reseting state to follower, updating currentTerm, reseting lastappendentriestime and granting vote",
-			rf.me, rf.state, args.CandidateId, args.Term, rf.currentTerm)
+		rf.debog("Rreceived a request vote from CandidateId %v with term %v while my term is %v, reseting state to follower, updating currentTerm, reseting lastappendentriestime and granting vote",
+			args.CandidateId, args.Term, rf.currentTerm)
 		rf.lastAppendEntriesReceivedTime = time.Now()
 		rf.currentTerm = args.Term
 		rf.state = FOLLOWER
@@ -283,6 +301,31 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 //
 func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *RequestVoteReply) bool {
 	ok := rf.peers[server].Call("Raft.RequestVote", args, reply)
+	rf.mu.Lock()
+	if reply.VoteGranted {
+		rf.votes++
+		rf.debog("Received a vote from R%v, now I have %v votes", server, rf.votes)
+	}
+	if reply.Term > rf.currentTerm {
+		rf.debog("Received a vote reply with term %v. Updating term and resigning.", reply.Term)
+		rf.state = FOLLOWER
+		rf.currentTerm = reply.Term
+	}
+	rf.mu.Unlock()
+
+	return ok
+}
+
+func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
+	ok := rf.peers[server].Call("Raft.AppendEntries", args, reply)
+	rf.mu.Lock()
+	if reply.Term > rf.currentTerm {
+		rf.debog("Received an AppendEntries reply with term %v. Updating term and reseting state to follower.", reply.Term)
+		rf.state = FOLLOWER
+		rf.currentTerm = reply.Term
+	}
+	rf.mu.Unlock()
+
 	return ok
 }
 
@@ -332,18 +375,13 @@ func (rf *Raft) killed() bool {
 }
 
 func (rf *Raft) start_election() {
-	debog("R%d In start_election", rf.me)
+	rf.debog("In start_election")
 	rf.mu.Lock()
 	rf.state = CANDIDATE
 	rf.currentTerm++
 	rf.votedFor = rf.me
 	rf.electionTime = time.Now()
-
-	for peer_id, _ := range rf.peers {
-		if peer_id != rf.me {
-			rf.voteReplies[peer_id] = RequestVoteReply{VoteGranted: false, Term: -1}
-		}
-	}
+	rf.votes = 1 // I voted for myself
 	rf.mu.Unlock()
 
 	for peer_id, _ := range rf.peers {
@@ -353,12 +391,13 @@ func (rf *Raft) start_election() {
 				CandidateId:  rf.me,
 				LastLogIndex: len(rf.log) - 1,
 			}
+			reply := RequestVoteReply{VoteGranted: false, Term: -1}
 			// if len rf.log == 0 it means rf.log is null, and it has no defined term
 			if len(rf.log) > 0 {
 				args.LastLogTerm = rf.log[len(rf.log)-1].Term
 			}
 
-			go rf.sendRequestVote(peer_id, &args, &rf.voteReplies[peer_id])
+			go rf.sendRequestVote(peer_id, &args, &reply)
 		}
 	}
 }
@@ -366,7 +405,7 @@ func (rf *Raft) start_election() {
 // The ticker go routine starts a new election if this peer hasn't received
 // heartsbeats recently.
 func (rf *Raft) ticker() {
-	debog("R%d In ticker! Btw I've been told I should start at least 2...", rf.me)
+	rf.debog("In ticker! Btw I've been told I should start at least 2.")
 
 	rand.Seed(time.Now().UnixNano())
 	election_timeout := ELECTION_TIMEOUT + time.Duration(rand.Intn(RANDOM_ELECTION_TIMEOUT))*time.Millisecond
@@ -393,32 +432,26 @@ func (rf *Raft) ticker() {
 		case FOLLOWER:
 			lastAppendEntriesFor := t.Sub(rf.lastAppendEntriesReceivedTime)
 			if lastAppendEntriesFor > HEARTBEAT_FREQUENCY*2 {
-				debog("R%d Was follower but didn't receive any appendentries for %v which is more than HEARTBEAT_FREQUENCY*2 %v. Starting election.", rf.me, lastAppendEntriesFor, HEARTBEAT_FREQUENCY*2)
+				rf.debog("Was follower but didn't receive any appendentries for %v which is more than HEARTBEAT_FREQUENCY*2 %v. Starting election.", lastAppendEntriesFor, HEARTBEAT_FREQUENCY*2)
 
 				rf.start_election()
 			}
 		case CANDIDATE:
-			// count votes
-			votes := 1
-			for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
-				if rf.voteReplies[peer_id].VoteGranted {
-					votes++
-				}
-			}
 
 			// if vote majority, become leader
-			if votes > len(rf.peers)/2 {
-				debog("R%d in state %v Got majority of votes (%d/%d), becoming LEADER for term %v!", rf.me, rf.state, votes, len(rf.peers), rf.currentTerm)
+			if rf.votes > len(rf.peers)/2 {
+				rf.debog("Got majority of votes (%d/%d), becoming LEADER for term %v!", rf.votes, len(rf.peers), rf.currentTerm)
 				rf.state = LEADER
 				rf.lastAppendEntriesSentTime = time.Now()
-				debog("R%d %v sending heartbeats", rf.me, rf.state)
+				rf.debog("Sending heartbeats")
 				// copied from case leader. Update at both places if needed.
 				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
 					if peer_id != rf.me {
 						args := AppendEntriesArgs{
 							Entries: make([]logentry, 0), Term: rf.currentTerm, LeaderId: rf.me}
 						reply := AppendEntriesReply{}
-						go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+						// go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+						go rf.sendAppendEntries(peer_id, &args, &reply)
 					}
 				}
 			} else {
@@ -426,7 +459,7 @@ func (rf *Raft) ticker() {
 				LastElectionStartedFor := t.Sub(rf.electionTime)
 				// debog("R%d I was in state %v, Last election was started for %v, did get only %d votes, restarting election", rf.me, rf.state, LastElectionStartedFor, votes)
 				if LastElectionStartedFor > election_timeout {
-					debog("R%d I was in state %v, Last election was started for %v, did get only %d votes, restarting election", rf.me, rf.state, LastElectionStartedFor, votes)
+					rf.debog("Last election was started for %v, did get only %d votes, restarting election", LastElectionStartedFor, rf.votes)
 					rf.start_election()
 				}
 			}
@@ -444,19 +477,15 @@ func (rf *Raft) ticker() {
 			// block copied in case candidate, update also there id needed
 			lastAppendEntriesSentSince := time.Since(rf.lastAppendEntriesSentTime)
 			if lastAppendEntriesSentSince > HEARTBEAT_FREQUENCY {
-				debog("R%d %v I'm the leader in term %v, last appendentriessenttime was %v ago, sending heartbeats", rf.me, rf.state, rf.currentTerm, lastAppendEntriesSentSince)
+				rf.debog("Last appendentriessenttime was %v ago, sending heartbeats.", lastAppendEntriesSentSince)
 				rf.lastAppendEntriesSentTime = time.Now()
 				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
 					if peer_id != rf.me {
 						args := AppendEntriesArgs{
 							Entries: make([]logentry, 0), Term: rf.currentTerm, LeaderId: rf.me}
 						reply := AppendEntriesReply{}
-						go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
-						// MOVE THAT somewhere else. Where we can check all appenentries replies. Can't wait...
-						// Probably needs to build an array of replies. Like we did for the election loop...
-						if reply.Term > rf.currentTerm {
-							debog("R%d %v I'm the leader in term %v, but I received a reply to a appendentriesrequest with a term %v  superior than mine. Setting back to follower and updating term.")
-						}
+						// go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+						go rf.sendAppendEntries(peer_id, &args, &reply)
 					}
 				}
 			} else {
@@ -491,7 +520,6 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	rf.lastAppendEntriesReceivedTime = time.Now()
 	rf.lastAppendEntriesSentTime = time.Now()
 	rf.state = FOLLOWER
-	rf.voteReplies = make([]RequestVoteReply, len(rf.peers))
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
@@ -533,23 +561,33 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	// Your code here (2A, 2B).
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
+
+	// Reply false if term < currentTerm
+	if args.Term < rf.currentTerm {
+		rf.debog("I received an appendentries with term %v inferior than mine, from leaderId %v. Discarding.", args.Term, args.LeaderId)
+		reply.Success = false
+		reply.Term = rf.currentTerm
+		return
+		//return false
+	}
+
 	rf.lastAppendEntriesReceivedTime = time.Now()
 
-	debog("R%d I'm in state %v my term is %v, I received an appendentries with term %v from leaderId %v", rf.me, rf.state, rf.currentTerm, args.Term, args.LeaderId)
+	rf.debog("I received an appendentries with term %v from leaderId %v", args.Term, args.LeaderId)
 
 	if rf.state == CANDIDATE {
 
 		if args.Term >= rf.currentTerm {
-			debog("R%d I'm candidate, but I received a heartbeat with term at least equal my current term, so getting back to follower", rf.me)
+			rf.debog("I received a heartbeat with term %v from leaderId %v, was candidate, getting back to follower", args.Term, args.LeaderId)
 			rf.state = FOLLOWER
 		}
 	}
 
 	if args.Term > rf.currentTerm {
-		debog("R%d Received an heartbeat with term superior than mine ( %v ). Updating my current term accordingly to %v", rf.me, rf.currentTerm, args.Term)
+		rf.debog("Received an heartbeat with term superior than mine ( %v ). Updating my current term accordingly to %v", rf.currentTerm, args.Term)
 		rf.currentTerm = args.Term
 		if rf.state == LEADER {
-			debog("R%d Also I was leader for term %v, getting back to simple peasant...")
+			rf.debog("Also I was leader for term %v, getting back to follower.")
 			rf.state = FOLLOWER
 		}
 	}
@@ -561,13 +599,6 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 		reply.Success = true
 		return
 		//return true
-	}
-
-	// Reply false if term < currentTerm
-	if args.Term < rf.currentTerm {
-		reply.Success = false
-		return
-		//return false
 	}
 
 	// Reply false if log doesn’t contain an entry at prevLogIndex

@@ -42,9 +42,9 @@ const (
 func (s State) String() string {
 	switch s {
 	case LEADER:
-		return "LEADER"
+		return "LEADER   "
 	case FOLLOWER:
-		return "FOLLOWER"
+		return "FOLLOWER "
 	case CANDIDATE:
 		return "CANDIDATE"
 	}
@@ -69,10 +69,11 @@ func init() {
 
 func (rf *Raft) debog(format string, a ...interface{}) {
 	if debug >= 1 {
-		time := time.Since(debugStart).Microseconds()
-		ms := time / 1000
-		Ms := time % 1000
-		prefix := fmt.Sprintf("%09d %06d.%3d|id:%v|state:%s|Term:%v ", time, ms, Ms, rf.me, rf.state, rf.currentTerm)
+		// time := time.Since(debugStart).Microseconds()
+		// ms := time / 1000
+		// Ms := time % 1000
+		time := time.Now().UnixNano()
+		prefix := fmt.Sprintf("%d|id:%v|state:%s|Term:%v|", time, rf.me, rf.state, rf.currentTerm)
 		format = prefix + format
 		log.Printf(format, a...)
 	}

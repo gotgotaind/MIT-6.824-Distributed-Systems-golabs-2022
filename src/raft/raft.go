@@ -42,11 +42,11 @@ const (
 func (s State) String() string {
 	switch s {
 	case LEADER:
-		return "LEADER   "
+		return "LEAD"
 	case FOLLOWER:
-		return "FOLLOWER "
+		return "FOLL"
 	case CANDIDATE:
-		return "CANDIDATE"
+		return "CAND"
 	}
 	return "unknown"
 }
@@ -72,8 +72,8 @@ func (rf *Raft) debog(format string, a ...interface{}) {
 		// time := time.Since(debugStart).Microseconds()
 		// ms := time / 1000
 		// Ms := time % 1000
-		time := time.Now().UnixNano()
-		prefix := fmt.Sprintf("%d|id:%v|state:%s|Term:%v|", time, rf.me, rf.state, rf.currentTerm)
+		time := time.Now().UnixNano() / 1000 / 1000
+		prefix := fmt.Sprintf("%d|R%v|%s|T%v|", time, rf.me, rf.state, rf.currentTerm)
 		format = prefix + format
 		log.Printf(format, a...)
 	}
@@ -234,12 +234,12 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
 	if args.Term < rf.currentTerm {
-		rf.debog("Received a request vote from CandidateId %v with term %v lower than mine, vote refused.",
+		rf.debog("rcv votereq from R%vT%v, vote refused cause older term",
 			args.CandidateId, args.Term)
 		reply.VoteGranted = false
 	} else if args.Term == rf.currentTerm {
 		if rf.votedFor == -1 {
-			rf.debog("Received a request vote from CandidateId %v with term %v, reseting lastappendentriestime and granting vote",
+			rf.debog("rcv votereq R%vT%v, granting vote",
 				args.CandidateId, args.Term)
 			rf.lastAppendEntriesReceivedTime = time.Now()
 			if rf.state != FOLLOWER {
@@ -249,7 +249,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 			rf.votedFor = args.CandidateId
 		} else {
 			if rf.votedFor != args.CandidateId {
-				rf.debog("Received a request vote from CandidateId %v with term %v, but I already voted for %v in this term. not reseting lastappendentriestime because it's not a call from the candidate I voted for. Refused to vote cause I already voted in this term to another candidate",
+				rf.debog("rcv reqvote from R%vT%v, but already voted for %v in this term",
 					args.CandidateId, args.Term, rf.votedFor)
 				reply.VoteGranted = false
 			} else {
@@ -260,7 +260,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 
 		}
 	} else if args.Term > rf.currentTerm {
-		rf.debog("Rreceived a request vote from CandidateId %v with term %v while my term is %v, reseting state to follower, updating currentTerm, reseting lastappendentriestime and granting vote",
+		rf.debog("rcv reqvote from R%vT%v, reseting state to follower, update term, grant vote",
 			args.CandidateId, args.Term, rf.currentTerm)
 		rf.lastAppendEntriesReceivedTime = time.Now()
 		rf.currentTerm = args.Term
@@ -305,12 +305,16 @@ func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *Reques
 	rf.mu.Lock()
 	if reply.VoteGranted {
 		rf.votes++
-		rf.debog("Received a vote from R%v, now I have %v votes", server, rf.votes)
-	}
-	if reply.Term > rf.currentTerm {
-		rf.debog("Received a vote reply with term %v. Updating term and resigning.", reply.Term)
-		rf.state = FOLLOWER
-		rf.currentTerm = reply.Term
+		rf.debog("rcv votegranted from R%vT%v, now I have %v votes", server, reply.Term, rf.votes)
+	} else {
+		if reply.Term > rf.currentTerm {
+			rf.debog("rcv votedenied from R%vT%v. Updating term and resigning.", server, reply.Term)
+			rf.state = FOLLOWER
+			rf.currentTerm = reply.Term
+		} else {
+			rf.debog("rcv votedenied from R%vT%v. why?", server, reply.Term)
+
+		}
 	}
 	rf.mu.Unlock()
 
@@ -321,7 +325,7 @@ func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *Ap
 	ok := rf.peers[server].Call("Raft.AppendEntries", args, reply)
 	rf.mu.Lock()
 	if reply.Term > rf.currentTerm {
-		rf.debog("Received an AppendEntries reply with term %v. Updating term and reseting state to follower.", reply.Term)
+		rf.debog("rcv AppendEntries reply with term %v. Updating term and reseting state to follower.", reply.Term)
 		rf.state = FOLLOWER
 		rf.currentTerm = reply.Term
 	}

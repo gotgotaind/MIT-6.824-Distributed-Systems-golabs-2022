@@ -410,7 +410,7 @@ func (rf *Raft) start_election() {
 // The ticker go routine starts a new election if this peer hasn't received
 // heartsbeats recently.
 func (rf *Raft) ticker() {
-	rf.debog("In ticker! Btw I've been told I should start at least 2.")
+	rf.debog("Starting ticker.")
 
 	rand.Seed(time.Now().UnixNano())
 	election_timeout := ELECTION_TIMEOUT + time.Duration(rand.Intn(RANDOM_ELECTION_TIMEOUT))*time.Millisecond
@@ -437,7 +437,7 @@ func (rf *Raft) ticker() {
 		case FOLLOWER:
 			lastAppendEntriesFor := t.Sub(rf.lastAppendEntriesReceivedTime)
 			if lastAppendEntriesFor > HEARTBEAT_FREQUENCY*2 {
-				rf.debog("Was follower but didn't receive any appendentries for %v which is more than HEARTBEAT_FREQUENCY*2 %v. Starting election.", lastAppendEntriesFor, HEARTBEAT_FREQUENCY*2)
+				rf.debog("no appendentries since %v starting election.", lastAppendEntriesFor)
 
 				rf.start_election()
 			}
@@ -445,7 +445,7 @@ func (rf *Raft) ticker() {
 
 			// if vote majority, become leader
 			if rf.votes > len(rf.peers)/2 {
-				rf.debog("Got majority of votes (%d/%d), becoming LEADER for term %v!", rf.votes, len(rf.peers), rf.currentTerm)
+				rf.debog("Got majority of votes (%d/%d), becoming LEADER", rf.votes, len(rf.peers))
 				rf.state = LEADER
 				rf.lastAppendEntriesSentTime = time.Now()
 				rf.debog("Sending heartbeats")
@@ -569,7 +569,7 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 
 	// Reply false if term < currentTerm
 	if args.Term < rf.currentTerm {
-		rf.debog("I received an appendentries with term %v inferior than mine, from leaderId %v. Discarding.", args.Term, args.LeaderId)
+		rf.debog("rcvappendentries from R%vT%v. Discarding.", args.LeaderId, args.Term)
 		reply.Success = false
 		reply.Term = rf.currentTerm
 		return
@@ -578,21 +578,21 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 
 	rf.lastAppendEntriesReceivedTime = time.Now()
 
-	rf.debog("I received an appendentries with term %v from leaderId %v", args.Term, args.LeaderId)
+	rf.debog("rcvappendentries from R%vT%v", args.LeaderId, args.Term)
 
 	if rf.state == CANDIDATE {
 
 		if args.Term >= rf.currentTerm {
-			rf.debog("I received a heartbeat with term %v from leaderId %v, was candidate, getting back to follower", args.Term, args.LeaderId)
+			rf.debog("rcvappendentries from R%vT%v, was candidate, getting back to follower", args.LeaderId, args.Term)
 			rf.state = FOLLOWER
 		}
 	}
 
 	if args.Term > rf.currentTerm {
-		rf.debog("Received an heartbeat with term superior than mine ( %v ). Updating my current term accordingly to %v", rf.currentTerm, args.Term)
+		rf.debog("rcvappendentries from R%vT%v, Updating my current term accordingly", args.LeaderId, args.Term)
 		rf.currentTerm = args.Term
 		if rf.state == LEADER {
-			rf.debog("Also I was leader for term %v, getting back to follower.")
+			rf.debog("Also I was leader, getting back to follower.")
 			rf.state = FOLLOWER
 		}
 	}

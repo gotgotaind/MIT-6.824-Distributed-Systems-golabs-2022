@@ -73,7 +73,7 @@ func (rf *Raft) debog(format string, a ...interface{}) {
 		// ms := time / 1000
 		// Ms := time % 1000
 		time := time.Now().UnixNano() / 1000 / 1000
-		prefix := fmt.Sprintf("%d|R%v|%s|T%v|", time, rf.me, rf.state, rf.currentTerm)
+		prefix := fmt.Sprintf("|%d|R%v|%s|T%v|", time, rf.me, rf.state, rf.currentTerm)
 		format = prefix + format
 		log.Printf(format, a...)
 	}
@@ -312,7 +312,7 @@ func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *Reques
 			rf.state = FOLLOWER
 			rf.currentTerm = reply.Term
 		} else {
-			rf.debog("rcv votedenied from R%vT%v. why?", server, reply.Term)
+			rf.debog("rcv votedenied from R%vT%v.", server, reply.Term)
 
 		}
 	}

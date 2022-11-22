@@ -72,10 +72,15 @@ func (rf *Raft) debog(format string, a ...interface{}) {
 		// time := time.Since(debugStart).Microseconds()
 		// ms := time / 1000
 		// Ms := time % 1000
-		time := time.Now().UnixNano() / 1000 / 1000
-		prefix := fmt.Sprintf("|%d|R%v|%s|T%v|", time, rf.me, rf.state, rf.currentTerm)
+		time := time.Now().UnixNano()
+		timemicro := time / 1000
+		timemili := time / 1000 / 1000
+		modulomicro := timemicro - timemili*1000
+		modulomili := timemili % 1000
+		prefix := fmt.Sprintf("|%d|%d.%dms|R%v|%s|T%v|", time, modulomili, modulomicro, rf.me, rf.state, rf.currentTerm)
 		format = prefix + format
-		log.Printf(format, a...)
+		// log.Printf(format, a...)
+		log.Output(2, fmt.Sprintf(format, a...))
 	}
 }
 

@@ -42,11 +42,11 @@ const (
 func (s State) String() string {
 	switch s {
 	case LEADER:
-		return "LEAD"
+		return "L"
 	case FOLLOWER:
-		return "FOLL"
+		return "F"
 	case CANDIDATE:
-		return "CAND"
+		return "C"
 	}
 	return "unknown"
 }
@@ -75,9 +75,10 @@ func (rf *Raft) debog(format string, a ...interface{}) {
 		time := time.Now().UnixNano()
 		timemicro := time / 1000
 		timemili := time / 1000 / 1000
-		modulomicro := timemicro - timemili*1000
+		restmicro := timemicro - timemili*1000
 		modulomili := timemili % 1000
-		prefix := fmt.Sprintf("|%d|%d.%dms|R%v|%s|T%v|", time, modulomili, modulomicro, rf.me, rf.state, rf.currentTerm)
+		modulosec := (timemili / 1000) % 1000
+		prefix := fmt.Sprintf("|%d|%3ds%03d.%03dms|R%vT%v%s|", time, modulosec, modulomili, restmicro, rf.me, rf.currentTerm, rf.state)
 		format = prefix + format
 		// log.Printf(format, a...)
 		log.Output(2, fmt.Sprintf(format, a...))
@@ -266,7 +267,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 		}
 	} else if args.Term > rf.currentTerm {
 		rf.debog("rcv reqvote from R%vT%v, reseting state to follower, update term, grant vote",
-			args.CandidateId, args.Term, rf.currentTerm)
+			args.CandidateId, args.Term)
 		rf.lastAppendEntriesReceivedTime = time.Now()
 		rf.currentTerm = args.Term
 		rf.state = FOLLOWER

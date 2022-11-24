@@ -1,0 +1,738 @@
+Test (2A): initial election ...
+raft.go:419: |1669239183934200500|183s934.200ms|R0T0F|Starting ticker.
+raft.go:419: |1669239183934280900|183s934.280ms|R2T0F|Starting ticker.
+raft.go:419: |1669239183934238200|183s934.238ms|R1T0F|Starting ticker.
+raft.go:446: |1669239184537992300|184s537.992ms|R0T0F|no appendentries since 603.8711ms starting election.
+raft.go:389: |1669239184538139600|184s538.139ms|R0T0F|In start_election
+raft.go:446: |1669239184538073500|184s538.073ms|R1T0F|no appendentries since 603.9093ms starting election.
+raft.go:389: |1669239184538313800|184s538.313ms|R1T0F|In start_election
+raft.go:269: |1669239184538478200|184s538.478ms|R2T0F|rcv reqvote from R0T1, reseting state to follower, update term, grant vote
+labgob warning: Decoding into a non-default variable/field Term may not work
+raft.go:314: |1669239184538593900|184s538.593ms|R0T1C|rcv votegranted from R2T1, now I have 2 votes
+raft.go:446: |1669239184538100900|184s538.100ms|R2T0F|no appendentries since 603.9032ms starting election.
+raft.go:389: |1669239184538625500|184s538.625ms|R2T1F|In start_election
+raft.go:258: |1669239184538627500|184s538.627ms|R2T1F|rcv reqvote from R1T1, but already voted for 0 in this term
+raft.go:258: |1669239184538703300|184s538.703ms|R1T1C|rcv reqvote from R0T1, but already voted for 1 in this term
+raft.go:258: |1669239184538732100|184s538.732ms|R0T1C|rcv reqvote from R1T1, but already voted for 0 in this term
+raft.go:321: |1669239184538803700|184s538.803ms|R0T1C|rcv votedenied from R1T1.
+raft.go:269: |1669239184538830900|184s538.830ms|R0T1C|rcv reqvote from R2T2, reseting state to follower, update term, grant vote
+raft.go:321: |1669239184538808100|184s538.808ms|R1T1C|rcv votedenied from R0T1.
+raft.go:314: |1669239184538935200|184s538.935ms|R2T2C|rcv votegranted from R0T2, now I have 2 votes
+raft.go:321: |1669239184538929800|184s538.929ms|R1T1C|rcv votedenied from R2T1.
+raft.go:269: |1669239184539049900|184s539.049ms|R1T1C|rcv reqvote from R2T2, reseting state to follower, update term, grant vote
+raft.go:314: |1669239184539227900|184s539.227ms|R2T2C|rcv votegranted from R1T2, now I have 3 votes
+raft.go:454: |1669239184549022700|184s549.022ms|R2T2C|Got majority of votes (3/3), becoming LEADER
+raft.go:457: |1669239184549079500|184s549.079ms|R2T2L|Sending heartbeats
+raft.go:587: |1669239184549387000|184s549.387ms|R0T2F|rcvappendentries from R2T2
+raft.go:587: |1669239184549393900|184s549.393ms|R1T2F|rcvappendentries from R2T2
+raft.go:491: |1669239184856105200|184s856.105ms|R2T2L|Last appendentriessenttime was 307.0246ms ago, sending heartbeats.
+raft.go:587: |1669239184856424800|184s856.424ms|R1T2F|rcvappendentries from R2T2
+raft.go:587: |1669239184856424000|184s856.424ms|R0T2F|rcvappendentries from R2T2
+raft.go:491: |1669239185162893000|185s162.893ms|R2T2L|Last appendentriessenttime was 306.6905ms ago, sending heartbeats.
+raft.go:587: |1669239185163306000|185s163.306ms|R1T2F|rcvappendentries from R2T2
+raft.go:587: |1669239185163352600|185s163.352ms|R0T2F|rcvappendentries from R2T2
+raft.go:491: |1669239185469303400|185s469.303ms|R2T2L|Last appendentriessenttime was 306.3159ms ago, sending heartbeats.
+raft.go:587: |1669239185469625500|185s469.625ms|R0T2F|rcvappendentries from R2T2
+raft.go:587: |1669239185469651300|185s469.651ms|R1T2F|rcvappendentries from R2T2
+raft.go:491: |1669239185776731200|185s776.731ms|R2T2L|Last appendentriessenttime was 307.3254ms ago, sending heartbeats.
+raft.go:587: |1669239185777043500|185s777.043ms|R0T2F|rcvappendentries from R2T2
+raft.go:587: |1669239185777043800|185s777.043ms|R1T2F|rcvappendentries from R2T2
+raft.go:491: |1669239186084294100|186s084.294ms|R2T2L|Last appendentriessenttime was 307.4494ms ago, sending heartbeats.
+raft.go:587: |1669239186084665800|186s084.665ms|R0T2F|rcvappendentries from R2T2
+raft.go:587: |1669239186084674800|186s084.674ms|R1T2F|rcvappendentries from R2T2
+raft.go:491: |1669239186392193100|186s392.193ms|R2T2L|Last appendentriessenttime was 307.8089ms ago, sending heartbeats.
+raft.go:587: |1669239186392440800|186s392.440ms|R0T2F|rcvappendentries from R2T2
+raft.go:587: |1669239186392502200|186s392.502ms|R1T2F|rcvappendentries from R2T2
+raft.go:491: |1669239186699691400|186s699.691ms|R2T2L|Last appendentriessenttime was 307.4228ms ago, sending heartbeats.
+raft.go:587: |1669239186700016400|186s700.016ms|R0T2F|rcvappendentries from R2T2
+raft.go:587: |1669239186700029600|186s700.029ms|R1T2F|rcvappendentries from R2T2
+raft.go:491: |1669239187009815300|187s009.815ms|R2T2L|Last appendentriessenttime was 310.0326ms ago, sending heartbeats.
+raft.go:587: |1669239187010437400|187s010.437ms|R0T2F|rcvappendentries from R2T2
+raft.go:587: |1669239187010477500|187s010.477ms|R1T2F|rcvappendentries from R2T2
+raft.go:491: |1669239187320023700|187s320.023ms|R2T2L|Last appendentriessenttime was 310.0984ms ago, sending heartbeats.
+raft.go:587: |1669239187320577600|187s320.577ms|R1T2F|rcvappendentries from R2T2
+raft.go:587: |1669239187320664200|187s320.664ms|R0T2F|rcvappendentries from R2T2
+  ... Passed --   3.5  3   26    6202    0
+Test (2A): election after network failure ...
+raft.go:419: |1669239187463526400|187s463.526ms|R1T0F|Starting ticker.
+raft.go:419: |1669239187463523000|187s463.523ms|R0T0F|Starting ticker.
+raft.go:419: |1669239187463546600|187s463.546ms|R2T0F|Starting ticker.
+raft.go:446: |1669239188068519200|188s068.519ms|R0T0F|no appendentries since 605.1367ms starting election.
+raft.go:389: |1669239188068589600|188s068.589ms|R0T0F|In start_election
+raft.go:446: |1669239188068560400|188s068.560ms|R1T0F|no appendentries since 605.1395ms starting election.
+raft.go:389: |1669239188068809200|188s068.809ms|R1T0F|In start_election
+raft.go:269: |1669239188068788000|188s068.788ms|R2T0F|rcv reqvote from R0T1, reseting state to follower, update term, grant vote
+raft.go:258: |1669239188068948400|188s068.948ms|R2T1F|rcv reqvote from R1T1, but already voted for 0 in this term
+raft.go:258: |1669239188069042200|188s069.042ms|R1T1C|rcv reqvote from R0T1, but already voted for 1 in this term
+raft.go:321: |1669239188069092200|188s069.092ms|R1T1C|rcv votedenied from R2T1.
+raft.go:314: |1669239188068971600|188s068.971ms|R0T1C|rcv votegranted from R2T1, now I have 2 votes
+raft.go:258: |1669239188069123300|188s069.123ms|R0T1C|rcv reqvote from R1T1, but already voted for 0 in this term
+raft.go:446: |1669239188068576200|188s068.576ms|R2T0F|no appendentries since 605.1089ms starting election.
+raft.go:321: |1669239188069209700|188s069.209ms|R1T1C|rcv votedenied from R0T1.
+raft.go:389: |1669239188069215500|188s069.215ms|R2T1F|In start_election
+raft.go:321: |1669239188069153000|188s069.153ms|R0T1C|rcv votedenied from R1T1.
+raft.go:269: |1669239188069400700|188s069.400ms|R1T1C|rcv reqvote from R2T2, reseting state to follower, update term, grant vote
+raft.go:269: |1669239188069444900|188s069.444ms|R0T1C|rcv reqvote from R2T2, reseting state to follower, update term, grant vote
+raft.go:314: |1669239188069524800|188s069.524ms|R2T2C|rcv votegranted from R0T2, now I have 2 votes
+raft.go:314: |1669239188069569500|188s069.569ms|R2T2C|rcv votegranted from R1T2, now I have 3 votes
+raft.go:454: |1669239188079500800|188s079.500ms|R2T2C|Got majority of votes (3/3), becoming LEADER
+raft.go:457: |1669239188079554500|188s079.554ms|R2T2L|Sending heartbeats
+raft.go:587: |1669239188079728700|188s079.728ms|R1T2F|rcvappendentries from R2T2
+raft.go:587: |1669239188079797000|188s079.797ms|R0T2F|rcvappendentries from R2T2
+raft.go:491: |1669239188386461800|188s386.461ms|R2T2L|Last appendentriessenttime was 306.9062ms ago, sending heartbeats.
+raft.go:587: |1669239188386745300|188s386.745ms|R1T2F|rcvappendentries from R2T2
+raft.go:587: |1669239188386804100|188s386.804ms|R0T2F|rcvappendentries from R2T2
+raft.go:491: |1669239188695116700|188s695.116ms|R2T2L|Last appendentriessenttime was 308.5595ms ago, sending heartbeats.
+raft.go:446: |1669239188992257900|188s992.257ms|R0T2F|no appendentries since 605.4505ms starting election.
+raft.go:389: |1669239188992429000|188s992.429ms|R0T2F|In start_election
+raft.go:446: |1669239188992273600|188s992.273ms|R1T2F|no appendentries since 605.5264ms starting election.
+raft.go:389: |1669239188992637500|188s992.637ms|R1T2F|In start_election
+raft.go:258: |1669239188992848500|188s992.848ms|R1T3C|rcv reqvote from R0T3, but already voted for 1 in this term
+raft.go:321: |1669239188993031600|188s993.031ms|R0T3C|rcv votedenied from R1T3.
+raft.go:258: |1669239188993263500|188s993.263ms|R0T3C|rcv reqvote from R1T3, but already voted for 0 in this term
+raft.go:321: |1669239188993514800|188s993.514ms|R1T3C|rcv votedenied from R0T3.
+raft.go:491: |1669239189003728200|189s003.728ms|R2T2L|Last appendentriessenttime was 308.4755ms ago, sending heartbeats.
+raft.go:491: |1669239189313299600|189s313.299ms|R2T2L|Last appendentriessenttime was 309.4383ms ago, sending heartbeats.
+raft.go:473: |1669239189620453500|189s620.453ms|R1T3C|Last election was started for 627.624ms, did get only 1 votes, restarting election
+raft.go:389: |1669239189620598200|189s620.598ms|R1T3C|In start_election
+raft.go:269: |1669239189621409000|189s621.409ms|R0T3C|rcv reqvote from R1T4, reseting state to follower, update term, grant vote
+raft.go:314: |1669239189621687500|189s621.687ms|R1T4C|rcv votegranted from R0T4, now I have 2 votes
+raft.go:491: |1669239189621819700|189s621.819ms|R2T2L|Last appendentriessenttime was 308.3664ms ago, sending heartbeats.
+raft.go:454: |1669239189630844000|189s630.844ms|R1T4C|Got majority of votes (2/3), becoming LEADER
+raft.go:457: |1669239189630936900|189s630.936ms|R1T4L|Sending heartbeats
+raft.go:587: |1669239189631440700|189s631.440ms|R0T4F|rcvappendentries from R1T4
+raft.go:491: |1669239189930584900|189s930.584ms|R2T2L|Last appendentriessenttime was 308.7211ms ago, sending heartbeats.
+raft.go:578: |1669239189931225700|189s931.225ms|R0T4F|rcvappendentries from R2T2. Discarding.
+raft.go:578: |1669239189931350300|189s931.350ms|R1T4L|rcvappendentries from R2T2. Discarding.
+raft.go:334: |1669239189931507900|189s931.507ms|R2T2L|rcv AppendEntries reply with term 4. Updating term and reseting state to follower.
+raft.go:491: |1669239189939321900|189s939.321ms|R1T4L|Last appendentriessenttime was 308.3845ms ago, sending heartbeats.
+raft.go:587: |1669239189939922700|189s939.922ms|R0T4F|rcvappendentries from R1T4
+raft.go:587: |1669239189940121500|189s940.121ms|R2T4F|rcvappendentries from R1T4
+raft.go:491: |1669239190247927200|190s247.927ms|R1T4L|Last appendentriessenttime was 308.4495ms ago, sending heartbeats.
+raft.go:587: |1669239190248594600|190s248.594ms|R0T4F|rcvappendentries from R1T4
+raft.go:587: |1669239190248657700|190s248.657ms|R2T4F|rcvappendentries from R1T4
+raft.go:491: |1669239190557522300|190s557.522ms|R1T4L|Last appendentriessenttime was 309.4549ms ago, sending heartbeats.
+raft.go:446: |1669239190857244700|190s857.244ms|R0T4F|no appendentries since 608.6473ms starting election.
+raft.go:389: |1669239190857433300|190s857.433ms|R0T4F|In start_election
+raft.go:446: |1669239190857313300|190s857.313ms|R2T4F|no appendentries since 608.653ms starting election.
+raft.go:389: |1669239190857513900|190s857.513ms|R2T4F|In start_election
+raft.go:491: |1669239190867674900|190s867.674ms|R1T4L|Last appendentriessenttime was 310.0386ms ago, sending heartbeats.
+raft.go:491: |1669239191177511400|191s177.511ms|R1T4L|Last appendentriessenttime was 309.7212ms ago, sending heartbeats.
+raft.go:321: |1669239191178934600|191s178.934ms|R0T5C|rcv votedenied from R1T-1.
+raft.go:321: |1669239191364145100|191s364.145ms|R1T4L|rcv votedenied from R2T-1.
+raft.go:321: |1669239191452899800|191s452.899ms|R0T5C|rcv votedenied from R2T-1.
+raft.go:491: |1669239191487679200|191s487.679ms|R1T4L|Last appendentriessenttime was 310.0157ms ago, sending heartbeats.
+raft.go:473: |1669239191497973400|191s497.973ms|R2T5C|Last election was started for 640.4212ms, did get only 1 votes, restarting election
+raft.go:389: |1669239191498087700|191s498.087ms|R2T5C|In start_election
+raft.go:473: |1669239191528973500|191s528.973ms|R0T5C|Last election was started for 671.4961ms, did get only 1 votes, restarting election
+raft.go:389: |1669239191529106300|191s529.106ms|R0T5C|In start_election
+raft.go:491: |1669239191797784500|191s797.784ms|R1T4L|Last appendentriessenttime was 309.9503ms ago, sending heartbeats.
+raft.go:321: |1669239191855975300|191s855.975ms|R2T6C|rcv votedenied from R0T-1.
+raft.go:491: |1669239192107674600|192s107.674ms|R1T4L|Last appendentriessenttime was 309.7601ms ago, sending heartbeats.
+raft.go:473: |1669239192138452900|192s138.452ms|R2T6C|Last election was started for 640.3236ms, did get only 1 votes, restarting election
+raft.go:389: |1669239192138573900|192s138.573ms|R2T6C|In start_election
+raft.go:473: |1669239192200413600|192s200.413ms|R0T6C|Last election was started for 671.2637ms, did get only 1 votes, restarting election
+raft.go:389: |1669239192200564000|192s200.564ms|R0T6C|In start_election
+raft.go:491: |1669239192417399300|192s417.399ms|R1T4L|Last appendentriessenttime was 309.4786ms ago, sending heartbeats.
+raft.go:491: |1669239192727522800|192s727.522ms|R1T4L|Last appendentriessenttime was 309.9759ms ago, sending heartbeats.
+raft.go:473: |1669239192778506100|192s778.506ms|R2T7C|Last election was started for 639.8906ms, did get only 1 votes, restarting election
+raft.go:389: |1669239192778584000|192s778.584ms|R2T7C|In start_election
+raft.go:269: |1669239192778804300|192s778.804ms|R0T7C|rcv reqvote from R2T8, reseting state to follower, update term, grant vote
+raft.go:314: |1669239192778946000|192s778.946ms|R2T8C|rcv votegranted from R0T8, now I have 2 votes
+raft.go:454: |1669239192788700000|192s788.700ms|R2T8C|Got majority of votes (2/3), becoming LEADER
+raft.go:457: |1669239192788792800|192s788.792ms|R2T8L|Sending heartbeats
+raft.go:587: |1669239192789038100|192s789.038ms|R0T8F|rcvappendentries from R2T8
+raft.go:321: |1669239192807095900|192s807.095ms|R2T8L|rcv votedenied from R0T-1.
+raft.go:491: |1669239193034426900|193s034.426ms|R1T4L|Last appendentriessenttime was 306.79ms ago, sending heartbeats.
+raft.go:578: |1669239193034903800|193s034.903ms|R2T8L|rcvappendentries from R1T4. Discarding.
+raft.go:578: |1669239193034910900|193s034.910ms|R0T8F|rcvappendentries from R1T4. Discarding.
+raft.go:334: |1669239193035044400|193s035.044ms|R1T4L|rcv AppendEntries reply with term 8. Updating term and reseting state to follower.
+raft.go:446: |1669239193044636800|193s044.636ms|R1T8F|no appendentries since 4.6578911s starting election.
+raft.go:389: |1669239193044685300|193s044.685ms|R1T8F|In start_election
+raft.go:269: |1669239193044793600|193s044.793ms|R2T8L|rcv reqvote from R1T9, reseting state to follower, update term, grant vote
+raft.go:269: |1669239193044838500|193s044.838ms|R0T8F|rcv reqvote from R1T9, reseting state to follower, update term, grant vote
+raft.go:314: |1669239193044909900|193s044.909ms|R1T9C|rcv votegranted from R2T9, now I have 2 votes
+raft.go:314: |1669239193044955700|193s044.955ms|R1T9C|rcv votegranted from R0T9, now I have 3 votes
+raft.go:454: |1669239193055018600|193s055.018ms|R1T9C|Got majority of votes (3/3), becoming LEADER
+raft.go:457: |1669239193055091300|193s055.091ms|R1T9L|Sending heartbeats
+raft.go:587: |1669239193055410600|193s055.410ms|R0T9F|rcvappendentries from R1T9
+raft.go:587: |1669239193055455300|193s055.455ms|R2T9F|rcvappendentries from R1T9
+raft.go:321: |1669239193277499800|193s277.499ms|R1T9L|rcv votedenied from R2T-1.
+  ... Passed --   5.9  3   70   12866    0
+raft.go:419: |1669239193351448400|193s351.448ms|R0T0F|Starting ticker.
+raft.go:419: |1669239193351578500|193s351.578ms|R2T0F|Starting ticker.
+raft.go:419: |1669239193351598300|193s351.598ms|R3T0F|Starting ticker.
+raft.go:419: |1669239193351573000|193s351.573ms|R1T0F|Starting ticker.
+raft.go:419: |1669239193351713500|193s351.713ms|R4T0F|Starting ticker.
+Test (2A): multiple elections ...
+raft.go:419: |1669239193351717000|193s351.717ms|R5T0F|Starting ticker.
+raft.go:419: |1669239193351750900|193s351.750ms|R6T0F|Starting ticker.
+raft.go:321: |1669239193658914600|193s658.914ms|R0T9F|rcv votedenied from R2T-1.
+raft.go:321: |1669239193698627200|193s698.627ms|R0T9F|rcv votedenied from R2T-1.
+raft.go:446: |1669239193956316200|193s956.316ms|R0T0F|no appendentries since 604.9734ms starting election.
+raft.go:389: |1669239193956432600|193s956.432ms|R0T0F|In start_election
+raft.go:446: |1669239193956422500|193s956.422ms|R2T0F|no appendentries since 604.9109ms starting election.
+raft.go:389: |1669239193956620100|193s956.620ms|R2T0F|In start_election
+raft.go:269: |1669239193956708700|193s956.708ms|R3T0F|rcv reqvote from R0T1, reseting state to follower, update term, grant vote
+raft.go:314: |1669239193956862400|193s956.862ms|R0T1C|rcv votegranted from R3T1, now I have 2 votes
+raft.go:269: |1669239193956882900|193s956.882ms|R5T0F|rcv reqvote from R0T1, reseting state to follower, update term, grant vote
+raft.go:269: |1669239193956980200|193s956.980ms|R6T0F|rcv reqvote from R0T1, reseting state to follower, update term, grant vote
+raft.go:269: |1669239193956708800|193s956.708ms|R1T0F|rcv reqvote from R0T1, reseting state to follower, update term, grant vote
+raft.go:446: |1669239193956432400|193s956.432ms|R6T0F|no appendentries since 604.7063ms starting election.
+raft.go:389: |1669239193957322900|193s957.322ms|R6T1F|In start_election
+raft.go:269: |1669239193957430300|193s957.430ms|R4T0F|rcv reqvote from R0T1, reseting state to follower, update term, grant vote
+raft.go:258: |1669239193957499900|193s957.499ms|R2T1C|rcv reqvote from R0T1, but already voted for 2 in this term
+raft.go:269: |1669239193957541300|193s957.541ms|R5T1F|rcv reqvote from R6T2, reseting state to follower, update term, grant vote
+raft.go:243: |1669239193957553300|193s957.553ms|R6T2C|rcv votereq from R2T1, vote refused cause older term
+raft.go:258: |1669239193957678200|193s957.678ms|R4T1F|rcv reqvote from R2T1, but already voted for 0 in this term
+raft.go:314: |1669239193957014500|193s957.014ms|R0T1C|rcv votegranted from R5T1, now I have 3 votes
+raft.go:258: |1669239193957716900|193s957.716ms|R3T1F|rcv reqvote from R2T1, but already voted for 0 in this term
+raft.go:317: |1669239193957814000|193s957.814ms|R2T1C|rcv votedenied from R6T2. Updating term and resigning.
+raft.go:314: |1669239193957686600|193s957.686ms|R6T2C|rcv votegranted from R5T2, now I have 2 votes
+raft.go:446: |1669239193956424000|193s956.424ms|R5T0F|no appendentries since 604.7684ms starting election.
+raft.go:269: |1669239193957941000|193s957.941ms|R3T1F|rcv reqvote from R6T2, reseting state to follower, update term, grant vote
+raft.go:314: |1669239193957726500|193s957.726ms|R0T1C|rcv votegranted from R6T1, now I have 4 votes
+raft.go:314: |1669239193958049300|193s958.049ms|R0T1C|rcv votegranted from R1T1, now I have 5 votes
+raft.go:258: |1669239193958066700|193s958.066ms|R0T1C|rcv reqvote from R2T1, but already voted for 0 in this term
+raft.go:269: |1669239193957934200|193s957.934ms|R4T1F|rcv reqvote from R6T2, reseting state to follower, update term, grant vote
+raft.go:314: |1669239193958164800|193s958.164ms|R0T1C|rcv votegranted from R4T1, now I have 6 votes
+raft.go:321: |1669239193958229500|193s958.229ms|R0T1C|rcv votedenied from R2T1.
+raft.go:321: |1669239193957950600|193s957.950ms|R2T2F|rcv votedenied from R3T1.
+raft.go:321: |1669239193958274300|193s958.274ms|R2T2F|rcv votedenied from R4T1.
+raft.go:258: |1669239193958291900|193s958.291ms|R2T2F|rcv reqvote from R6T2, but already voted for 2 in this term
+raft.go:269: |1669239193958250300|193s958.250ms|R0T1C|rcv reqvote from R6T2, reseting state to follower, update term, grant vote
+raft.go:321: |1669239193958377700|193s958.377ms|R2T2F|rcv votedenied from R0T1.
+raft.go:446: |1669239193956409900|193s956.409ms|R4T0F|no appendentries since 604.7777ms starting election.
+raft.go:389: |1669239193958410600|193s958.410ms|R4T2F|In start_election
+raft.go:258: |1669239193957699300|193s957.699ms|R1T1F|rcv reqvote from R2T1, but already voted for 0 in this term
+raft.go:269: |1669239193958653200|193s958.653ms|R3T2F|rcv reqvote from R4T3, reseting state to follower, update term, grant vote
+raft.go:269: |1669239193958573300|193s958.573ms|R2T2F|rcv reqvote from R4T3, reseting state to follower, update term, grant vote
+raft.go:269: |1669239193958731800|193s958.731ms|R0T2F|rcv reqvote from R4T3, reseting state to follower, update term, grant vote
+raft.go:269: |1669239193958716400|193s958.716ms|R1T1F|rcv reqvote from R6T2, reseting state to follower, update term, grant vote
+raft.go:389: |1669239193957949900|193s957.949ms|R5T2F|In start_election
+raft.go:446: |1669239193956394400|193s956.394ms|R1T0F|no appendentries since 604.9368ms starting election.
+raft.go:314: |1669239193958725400|193s958.725ms|R4T3C|rcv votegranted from R3T3, now I have 2 votes
+raft.go:314: |1669239193958878300|193s958.878ms|R4T3C|rcv votegranted from R0T3, now I have 3 votes
+raft.go:321: |1669239193958838900|193s958.838ms|R2T3F|rcv votedenied from R1T1.
+raft.go:389: |1669239193958854100|193s958.854ms|R1T2F|In start_election
+raft.go:446: |1669239193956417500|193s956.417ms|R3T0F|no appendentries since 604.8291ms starting election.
+raft.go:389: |1669239193958968100|193s958.968ms|R3T3F|In start_election
+raft.go:314: |1669239193958036500|193s958.036ms|R6T2C|rcv votegranted from R3T2, now I have 3 votes
+raft.go:314: |1669239193959002300|193s959.002ms|R6T2C|rcv votegranted from R4T2, now I have 4 votes
+raft.go:321: |1669239193959018300|193s959.018ms|R6T2C|rcv votedenied from R2T2.
+raft.go:314: |1669239193959035000|193s959.035ms|R6T2C|rcv votegranted from R0T2, now I have 5 votes
+raft.go:269: |1669239193959050200|193s959.050ms|R6T2C|rcv reqvote from R4T3, reseting state to follower, update term, grant vote
+raft.go:269: |1669239193958856100|193s958.856ms|R1T2F|rcv reqvote from R4T3, reseting state to follower, update term, grant vote
+raft.go:314: |1669239193959227000|193s959.227ms|R6T3F|rcv votegranted from R1T2, now I have 6 votes
+raft.go:243: |1669239193957833200|193s957.833ms|R5T2F|rcv votereq from R2T1, vote refused cause older term
+raft.go:269: |1669239193959237700|193s959.237ms|R0T3F|rcv reqvote from R3T4, reseting state to follower, update term, grant vote
+raft.go:314: |1669239193958970600|193s958.970ms|R4T3C|rcv votegranted from R2T3, now I have 4 votes
+raft.go:314: |1669239193959339300|193s959.339ms|R4T3C|rcv votegranted from R6T3, now I have 5 votes
+raft.go:269: |1669239193959355500|193s959.355ms|R4T3C|rcv reqvote from R3T4, reseting state to follower, update term, grant vote
+raft.go:314: |1669239193959363400|193s959.363ms|R3T4C|rcv votegranted from R0T4, now I have 2 votes
+raft.go:269: |1669239193959252500|193s959.252ms|R6T3F|rcv reqvote from R3T4, reseting state to follower, update term, grant vote
+raft.go:314: |1669239193959398100|193s959.398ms|R4T4F|rcv votegranted from R1T3, now I have 6 votes
+raft.go:269: |1669239193959283500|193s959.283ms|R5T2F|rcv reqvote from R3T4, reseting state to follower, update term, grant vote
+raft.go:269: |1669239193959132100|193s959.132ms|R2T3F|rcv reqvote from R3T4, reseting state to follower, update term, grant vote
+raft.go:314: |1669239193959423600|193s959.423ms|R3T4C|rcv votegranted from R4T4, now I have 3 votes
+raft.go:314: |1669239193959682700|193s959.682ms|R3T4C|rcv votegranted from R6T4, now I have 4 votes
+raft.go:269: |1669239193959706100|193s959.706ms|R6T4F|rcv reqvote from R5T5, reseting state to follower, update term, grant vote
+raft.go:314: |1669239193959705600|193s959.705ms|R3T4C|rcv votegranted from R5T4, now I have 5 votes
+raft.go:314: |1669239193959743400|193s959.743ms|R3T4C|rcv votegranted from R2T4, now I have 6 votes
+raft.go:321: |1669239193959761100|193s959.761ms|R2T4F|rcv votedenied from R5T2.
+raft.go:269: |1669239193959255400|193s959.255ms|R1T3F|rcv reqvote from R3T4, reseting state to follower, update term, grant vote
+raft.go:314: |1669239193959807000|193s959.807ms|R5T5C|rcv votegranted from R6T5, now I have 2 votes
+raft.go:243: |1669239193959828000|193s959.828ms|R5T5C|rcv votereq from R4T3, vote refused cause older term
+raft.go:258: |1669239193959946100|193s959.946ms|R6T5F|rcv reqvote from R1T5, but already voted for 5 in this term
+raft.go:317: |1669239193959995200|193s959.995ms|R4T4F|rcv votedenied from R5T5. Updating term and resigning.
+raft.go:321: |1669239193960043800|193s960.043ms|R1T5C|rcv votedenied from R6T5.
+raft.go:269: |1669239193960104600|193s960.104ms|R0T4F|rcv reqvote from R5T5, reseting state to follower, update term, grant vote
+raft.go:258: |1669239193960160400|193s960.160ms|R0T5F|rcv reqvote from R1T5, but already voted for 5 in this term
+raft.go:314: |1669239193960232300|193s960.232ms|R5T5C|rcv votegranted from R0T5, now I have 3 votes
+raft.go:321: |1669239193960283800|193s960.283ms|R1T5C|rcv votedenied from R0T5.
+raft.go:258: |1669239193960347100|193s960.347ms|R1T5C|rcv reqvote from R5T5, but already voted for 1 in this term
+raft.go:269: |1669239193960407900|193s960.407ms|R2T4F|rcv reqvote from R1T5, reseting state to follower, update term, grant vote
+raft.go:258: |1669239193960487600|193s960.487ms|R2T5F|rcv reqvote from R5T5, but already voted for 1 in this term
+raft.go:314: |1669239193960507100|193s960.507ms|R1T5C|rcv votegranted from R2T5, now I have 2 votes
+raft.go:258: |1669239193960683200|193s960.683ms|R4T5F|rcv reqvote from R1T5, but already voted for 3 in this term
+raft.go:321: |1669239193960784900|193s960.784ms|R1T5C|rcv votedenied from R4T5.
+raft.go:258: |1669239193960785200|193s960.785ms|R4T5F|rcv reqvote from R5T5, but already voted for 3 in this term
+raft.go:321: |1669239193960419400|193s960.419ms|R5T5C|rcv votedenied from R1T5.
+raft.go:321: |1669239193960877500|193s960.877ms|R5T5C|rcv votedenied from R2T5.
+raft.go:314: |1669239193959861400|193s959.861ms|R3T4C|rcv votegranted from R1T4, now I have 7 votes
+raft.go:269: |1669239193960904500|193s960.904ms|R3T4C|rcv reqvote from R1T5, reseting state to follower, update term, grant vote
+raft.go:321: |1669239193960891800|193s960.891ms|R5T5C|rcv votedenied from R4T5.
+raft.go:258: |1669239193960962000|193s960.962ms|R5T5C|rcv reqvote from R1T5, but already voted for 5 in this term
+raft.go:314: |1669239193960991300|193s960.991ms|R1T5C|rcv votegranted from R3T5, now I have 3 votes
+raft.go:258: |1669239193961010700|193s961.010ms|R3T5F|rcv reqvote from R5T5, but already voted for 1 in this term
+raft.go:321: |1669239193961034800|193s961.034ms|R1T5C|rcv votedenied from R5T5.
+raft.go:321: |1669239193961072800|193s961.072ms|R5T5C|rcv votedenied from R3T5.
+raft.go:321: |1669239194424545100|194s424.545ms|R0T9F|rcv votedenied from R1T-1.
+raft.go:446: |1669239194560811300|194s560.811ms|R4T5F|no appendentries since 601.4377ms starting election.
+raft.go:389: |1669239194560899000|194s560.899ms|R4T5F|In start_election
+raft.go:269: |1669239194561135300|194s561.135ms|R3T5F|rcv reqvote from R4T6, reseting state to follower, update term, grant vote
+raft.go:269: |1669239194561242000|194s561.242ms|R5T5C|rcv reqvote from R4T6, reseting state to follower, update term, grant vote
+raft.go:314: |1669239194561257200|194s561.257ms|R4T6C|rcv votegranted from R3T6, now I have 2 votes
+raft.go:269: |1669239194561356900|194s561.356ms|R6T5F|rcv reqvote from R4T6, reseting state to follower, update term, grant vote
+raft.go:314: |1669239194561386500|194s561.386ms|R4T6C|rcv votegranted from R5T6, now I have 3 votes
+raft.go:269: |1669239194561152500|194s561.152ms|R0T5F|rcv reqvote from R4T6, reseting state to follower, update term, grant vote
+raft.go:314: |1669239194561491900|194s561.491ms|R4T6C|rcv votegranted from R6T6, now I have 4 votes
+raft.go:269: |1669239194561142300|194s561.142ms|R1T5C|rcv reqvote from R4T6, reseting state to follower, update term, grant vote
+raft.go:314: |1669239194561581600|194s561.581ms|R4T6C|rcv votegranted from R0T6, now I have 5 votes
+raft.go:314: |1669239194561658400|194s561.658ms|R4T6C|rcv votegranted from R1T6, now I have 6 votes
+raft.go:269: |1669239194561663800|194s561.663ms|R2T5F|rcv reqvote from R4T6, reseting state to follower, update term, grant vote
+raft.go:314: |1669239194561834700|194s561.834ms|R4T6C|rcv votegranted from R2T6, now I have 7 votes
+raft.go:454: |1669239194571169300|194s571.169ms|R4T6C|Got majority of votes (7/7), becoming LEADER
+raft.go:457: |1669239194571236300|194s571.236ms|R4T6L|Sending heartbeats
+raft.go:587: |1669239194571416500|194s571.416ms|R6T6F|rcvappendentries from R4T6
+raft.go:587: |1669239194571478600|194s571.478ms|R2T6F|rcvappendentries from R4T6
+raft.go:587: |1669239194571546900|194s571.546ms|R5T6F|rcvappendentries from R4T6
+raft.go:587: |1669239194571546300|194s571.546ms|R3T6F|rcvappendentries from R4T6
+raft.go:587: |1669239194571616100|194s571.616ms|R0T6F|rcvappendentries from R4T6
+raft.go:587: |1669239194571684300|194s571.684ms|R1T6F|rcvappendentries from R4T6
+raft.go:491: |1669239194877557300|194s877.557ms|R4T6L|Last appendentriessenttime was 306.3198ms ago, sending heartbeats.
+raft.go:446: |1669239195171733600|195s171.733ms|R0T6F|no appendentries since 600.1166ms starting election.
+raft.go:389: |1669239195171846500|195s171.846ms|R0T6F|In start_election
+raft.go:446: |1669239195171785900|195s171.785ms|R6T6F|no appendentries since 600.3685ms starting election.
+raft.go:389: |1669239195171941900|195s171.941ms|R6T6F|In start_election
+raft.go:446: |1669239195171802400|195s171.802ms|R2T6F|no appendentries since 600.3239ms starting election.
+raft.go:389: |1669239195172021600|195s172.021ms|R2T6F|In start_election
+raft.go:269: |1669239195172021300|195s172.021ms|R3T6F|rcv reqvote from R0T7, reseting state to follower, update term, grant vote
+raft.go:269: |1669239195172135300|195s172.135ms|R5T6F|rcv reqvote from R0T7, reseting state to follower, update term, grant vote
+raft.go:269: |1669239195172021200|195s172.021ms|R1T6F|rcv reqvote from R0T7, reseting state to follower, update term, grant vote
+raft.go:314: |1669239195172236100|195s172.236ms|R0T7C|rcv votegranted from R5T7, now I have 2 votes
+raft.go:314: |1669239195172256500|195s172.256ms|R0T7C|rcv votegranted from R3T7, now I have 3 votes
+raft.go:314: |1669239195172360300|195s172.360ms|R0T7C|rcv votegranted from R1T7, now I have 4 votes
+raft.go:454: |1669239195182190500|195s182.190ms|R0T7C|Got majority of votes (4/7), becoming LEADER
+raft.go:457: |1669239195182246000|195s182.246ms|R0T7L|Sending heartbeats
+raft.go:587: |1669239195182483000|195s182.483ms|R1T7F|rcvappendentries from R0T7
+raft.go:587: |1669239195182566700|195s182.566ms|R5T7F|rcvappendentries from R0T7
+raft.go:587: |1669239195182510700|195s182.510ms|R3T7F|rcvappendentries from R0T7
+raft.go:491: |1669239195184013500|195s184.013ms|R4T6L|Last appendentriessenttime was 306.3681ms ago, sending heartbeats.
+raft.go:491: |1669239195488607500|195s488.607ms|R0T7L|Last appendentriessenttime was 306.3603ms ago, sending heartbeats.
+raft.go:491: |1669239195490316200|195s490.316ms|R4T6L|Last appendentriessenttime was 306.2537ms ago, sending heartbeats.
+raft.go:578: |1669239195490606300|195s490.606ms|R2T7C|rcvappendentries from R4T6. Discarding.
+raft.go:578: |1669239195490658700|195s490.658ms|R1T7F|rcvappendentries from R4T6. Discarding.
+raft.go:334: |1669239195490728100|195s490.728ms|R4T6L|rcv AppendEntries reply with term 7. Updating term and reseting state to follower.
+raft.go:578: |1669239195490747500|195s490.747ms|R6T7C|rcvappendentries from R4T6. Discarding.
+raft.go:578: |1669239195490637500|195s490.637ms|R5T7F|rcvappendentries from R4T6. Discarding.
+raft.go:446: |1669239195500632100|195s500.632ms|R4T7F|no appendentries since 1.5412588s starting election.
+raft.go:389: |1669239195500686900|195s500.686ms|R4T7F|In start_election
+raft.go:269: |1669239195500808100|195s500.808ms|R6T7C|rcv reqvote from R4T8, reseting state to follower, update term, grant vote
+raft.go:269: |1669239195500889600|195s500.889ms|R1T7F|rcv reqvote from R4T8, reseting state to follower, update term, grant vote
+raft.go:269: |1669239195500917400|195s500.917ms|R5T7F|rcv reqvote from R4T8, reseting state to follower, update term, grant vote
+raft.go:314: |1669239195500902400|195s500.902ms|R4T8C|rcv votegranted from R6T8, now I have 2 votes
+raft.go:314: |1669239195501045600|195s501.045ms|R4T8C|rcv votegranted from R5T8, now I have 3 votes
+raft.go:314: |1669239195501067600|195s501.067ms|R4T8C|rcv votegranted from R1T8, now I have 4 votes
+raft.go:269: |1669239195500901500|195s500.901ms|R2T7C|rcv reqvote from R4T8, reseting state to follower, update term, grant vote
+raft.go:314: |1669239195501197700|195s501.197ms|R4T8C|rcv votegranted from R2T8, now I have 5 votes
+raft.go:454: |1669239195510843100|195s510.843ms|R4T8C|Got majority of votes (5/7), becoming LEADER
+raft.go:457: |1669239195510895300|195s510.895ms|R4T8L|Sending heartbeats
+raft.go:587: |1669239195511069800|195s511.069ms|R6T8F|rcvappendentries from R4T8
+raft.go:587: |1669239195511215100|195s511.215ms|R1T8F|rcvappendentries from R4T8
+raft.go:587: |1669239195511288900|195s511.288ms|R5T8F|rcvappendentries from R4T8
+raft.go:587: |1669239195511218800|195s511.218ms|R2T8F|rcvappendentries from R4T8
+raft.go:321: |1669239195674211200|195s674.211ms|R0T7L|rcv votedenied from R2T-1.
+raft.go:321: |1669239195694427700|195s694.427ms|R6T8F|rcv votedenied from R4T-1.
+raft.go:446: |1669239195786498800|195s786.498ms|R3T7F|no appendentries since 603.9871ms starting election.
+raft.go:389: |1669239195786562600|195s786.562ms|R3T7F|In start_election
+raft.go:491: |1669239195795317500|195s795.317ms|R0T7L|Last appendentriessenttime was 306.6261ms ago, sending heartbeats.
+raft.go:491: |1669239195817035700|195s817.035ms|R4T8L|Last appendentriessenttime was 306.1396ms ago, sending heartbeats.
+raft.go:587: |1669239195817360000|195s817.360ms|R6T8F|rcvappendentries from R4T8
+raft.go:587: |1669239195817416200|195s817.416ms|R1T8F|rcvappendentries from R4T8
+raft.go:587: |1669239195817380400|195s817.380ms|R2T8F|rcvappendentries from R4T8
+raft.go:321: |1669239196040532000|196s040.532ms|R2T9F|rcv votedenied from R0T-1.
+raft.go:491: |1669239196102274000|196s102.274ms|R0T7L|Last appendentriessenttime was 306.8997ms ago, sending heartbeats.
+raft.go:446: |1669239196113585600|196s113.585ms|R5T8F|no appendentries since 602.2962ms starting election.
+raft.go:389: |1669239196113638000|196s113.638ms|R5T8F|In start_election
+raft.go:491: |1669239196123834500|196s123.834ms|R4T8L|Last appendentriessenttime was 306.7068ms ago, sending heartbeats.
+raft.go:587: |1669239196124129900|196s124.129ms|R6T8F|rcvappendentries from R4T8
+raft.go:587: |1669239196124130000|196s124.130ms|R1T8F|rcvappendentries from R4T8
+raft.go:587: |1669239196124154700|196s124.154ms|R2T8F|rcvappendentries from R4T8
+raft.go:321: |1669239196341828000|196s341.828ms|R2T9F|rcv votedenied from R1T-1.
+raft.go:491: |1669239196408842700|196s408.842ms|R0T7L|Last appendentriessenttime was 306.4782ms ago, sending heartbeats.
+raft.go:473: |1669239196420346800|196s420.346ms|R3T8C|Last election was started for 633.7677ms, did get only 1 votes, restarting election
+raft.go:389: |1669239196420413000|196s420.413ms|R3T8C|In start_election
+raft.go:269: |1669239196420587700|196s420.587ms|R6T8F|rcv reqvote from R3T9, reseting state to follower, update term, grant vote
+raft.go:269: |1669239196420652000|196s420.652ms|R1T8F|rcv reqvote from R3T9, reseting state to follower, update term, grant vote
+raft.go:269: |1669239196420715100|196s420.715ms|R4T8L|rcv reqvote from R3T9, reseting state to follower, update term, grant vote
+raft.go:314: |1669239196420751200|196s420.751ms|R3T9C|rcv votegranted from R1T9, now I have 2 votes
+raft.go:314: |1669239196420796500|196s420.796ms|R3T9C|rcv votegranted from R6T9, now I have 3 votes
+raft.go:314: |1669239196420827800|196s420.827ms|R3T9C|rcv votegranted from R4T9, now I have 4 votes
+raft.go:454: |1669239196430497700|196s430.497ms|R3T9C|Got majority of votes (4/7), becoming LEADER
+raft.go:457: |1669239196430554600|196s430.554ms|R3T9L|Sending heartbeats
+raft.go:587: |1669239196430726800|196s430.726ms|R6T9F|rcvappendentries from R3T9
+raft.go:587: |1669239196430795800|196s430.795ms|R4T9F|rcvappendentries from R3T9
+raft.go:587: |1669239196430808000|196s430.808ms|R1T9F|rcvappendentries from R3T9
+raft.go:321: |1669239196662815900|196s662.815ms|R3T9L|rcv votedenied from R6T-1.
+raft.go:491: |1669239196715843800|196s715.843ms|R0T7L|Last appendentriessenttime was 306.9107ms ago, sending heartbeats.
+raft.go:446: |1669239196725986700|196s725.986ms|R2T8F|no appendentries since 601.8297ms starting election.
+raft.go:389: |1669239196726072700|196s726.072ms|R2T8F|In start_election
+raft.go:473: |1669239196726843700|196s726.843ms|R5T9C|Last election was started for 613.1861ms, did get only 1 votes, restarting election
+raft.go:389: |1669239196726946900|196s726.946ms|R5T9C|In start_election
+raft.go:491: |1669239196736954000|196s736.954ms|R3T9L|Last appendentriessenttime was 306.3985ms ago, sending heartbeats.
+raft.go:587: |1669239196737192400|196s737.192ms|R6T9F|rcvappendentries from R3T9
+raft.go:587: |1669239196737265000|196s737.265ms|R4T9F|rcvappendentries from R3T9
+raft.go:587: |1669239196737211000|196s737.211ms|R1T9F|rcvappendentries from R3T9
+raft.go:321: |1669239196802391100|196s802.391ms|R2T9F|rcv votedenied from R1T-1.
+raft.go:491: |1669239197022370200|197s022.370ms|R0T7L|Last appendentriessenttime was 306.4347ms ago, sending heartbeats.
+raft.go:578: |1669239197022684300|197s022.684ms|R3T9L|rcvappendentries from R0T7. Discarding.
+raft.go:578: |1669239197022715700|197s022.715ms|R6T9F|rcvappendentries from R0T7. Discarding.
+raft.go:334: |1669239197022790200|197s022.790ms|R0T7L|rcv AppendEntries reply with term 9. Updating term and reseting state to follower.
+raft.go:578: |1669239197022982400|197s022.982ms|R1T9F|rcvappendentries from R0T7. Discarding.
+raft.go:446: |1669239197032624900|197s032.624ms|R0T9F|no appendentries since 2.4610075s starting election.
+raft.go:389: |1669239197032695700|197s032.695ms|R0T9F|In start_election
+raft.go:269: |1669239197032868300|197s032.868ms|R1T9F|rcv reqvote from R0T10, reseting state to follower, update term, grant vote
+raft.go:269: |1669239197032923000|197s032.923ms|R3T9L|rcv reqvote from R0T10, reseting state to follower, update term, grant vote
+raft.go:269: |1669239197032977400|197s032.977ms|R6T9F|rcv reqvote from R0T10, reseting state to follower, update term, grant vote
+raft.go:314: |1669239197033009600|197s033.009ms|R0T10C|rcv votegranted from R1T10, now I have 2 votes
+raft.go:314: |1669239197033082200|197s033.082ms|R0T10C|rcv votegranted from R6T10, now I have 3 votes
+raft.go:314: |1669239197033104700|197s033.104ms|R0T10C|rcv votegranted from R3T10, now I have 4 votes
+raft.go:454: |1669239197042779100|197s042.779ms|R0T10C|Got majority of votes (4/7), becoming LEADER
+raft.go:457: |1669239197042838600|197s042.838ms|R0T10L|Sending heartbeats
+raft.go:587: |1669239197043069800|197s043.069ms|R6T10F|rcvappendentries from R0T10
+raft.go:587: |1669239197043089600|197s043.089ms|R1T10F|rcvappendentries from R0T10
+raft.go:587: |1669239197043091300|197s043.091ms|R3T10F|rcvappendentries from R0T10
+raft.go:321: |1669239197064692300|197s064.692ms|R3T10F|rcv votedenied from R2T-1.
+raft.go:321: |1669239197121096500|197s121.096ms|R4T9F|rcv votedenied from R0T-1.
+raft.go:321: |1669239197233313200|197s233.313ms|R6T10F|rcv votedenied from R5T-1.
+raft.go:321: |1669239197283210300|197s283.210ms|R0T10L|rcv votedenied from R4T-1.
+raft.go:446: |1669239197339713200|197s339.713ms|R4T9F|no appendentries since 602.4466ms starting election.
+raft.go:389: |1669239197339799300|197s339.799ms|R4T9F|In start_election
+raft.go:473: |1669239197339795600|197s339.795ms|R5T10C|Last election was started for 612.8268ms, did get only 1 votes, restarting election
+raft.go:389: |1669239197339866300|197s339.866ms|R5T10C|In start_election
+raft.go:258: |1669239197339999100|197s339.999ms|R3T10F|rcv reqvote from R4T10, but already voted for 0 in this term
+raft.go:258: |1669239197340073600|197s340.073ms|R1T10F|rcv reqvote from R4T10, but already voted for 0 in this term
+raft.go:321: |1669239197340148900|197s340.148ms|R4T10C|rcv votedenied from R3T10.
+raft.go:269: |1669239197340059200|197s340.059ms|R2T9C|rcv reqvote from R4T10, reseting state to follower, update term, grant vote
+raft.go:258: |1669239197340129200|197s340.129ms|R0T10L|rcv reqvote from R4T10, but already voted for 0 in this term
+raft.go:314: |1669239197340268700|197s340.268ms|R4T10C|rcv votegranted from R2T10, now I have 2 votes
+raft.go:321: |1669239197340452400|197s340.452ms|R4T10C|rcv votedenied from R1T10.
+raft.go:321: |1669239197340476100|197s340.476ms|R4T10C|rcv votedenied from R0T10.
+raft.go:491: |1669239197349989500|197s349.989ms|R0T10L|Last appendentriessenttime was 307.1495ms ago, sending heartbeats.
+raft.go:587: |1669239197350254500|197s350.254ms|R4T10C|rcvappendentries from R0T10
+raft.go:592: |1669239197350281400|197s350.281ms|R4T10C|rcvappendentries from R0T10, was candidate, getting back to follower
+raft.go:587: |1669239197350292100|197s350.292ms|R3T10F|rcvappendentries from R0T10
+raft.go:587: |1669239197350258200|197s350.258ms|R1T10F|rcvappendentries from R0T10
+raft.go:587: |1669239197350255500|197s350.255ms|R2T10F|rcvappendentries from R0T10
+raft.go:321: |1669239197510960900|197s510.960ms|R2T9F|rcv votedenied from R1T-1.
+raft.go:321: |1669239197540972000|197s540.972ms|R3T10F|rcv votedenied from R5T-1.
+raft.go:321: |1669239197590360800|197s590.360ms|R6T10F|rcv votedenied from R0T-1.
+raft.go:446: |1669239197647155100|197s647.155ms|R6T10F|no appendentries since 604.0841ms starting election.
+raft.go:389: |1669239197647259500|197s647.259ms|R6T10F|In start_election
+raft.go:491: |1669239197657353000|197s657.353ms|R0T10L|Last appendentriessenttime was 307.2823ms ago, sending heartbeats.
+raft.go:587: |1669239197657739700|197s657.739ms|R4T10F|rcvappendentries from R0T10
+raft.go:587: |1669239197657781300|197s657.781ms|R2T10F|rcvappendentries from R0T10
+raft.go:587: |1669239197657738900|197s657.738ms|R3T10F|rcvappendentries from R0T10
+raft.go:587: |1669239197657860000|197s657.860ms|R1T10F|rcvappendentries from R0T10
+raft.go:321: |1669239197677836400|197s677.836ms|R6T11C|rcv votedenied from R2T-1.
+raft.go:321: |1669239197690945800|197s690.945ms|R5T11C|rcv votedenied from R2T-1.
+raft.go:321: |1669239197781153200|197s781.153ms|R0T9F|rcv votedenied from R1T-1.
+raft.go:321: |1669239197834957700|197s834.957ms|R2T9F|rcv votedenied from R1T-1.
+raft.go:321: |1669239197927930700|197s927.930ms|R5T11C|rcv votedenied from R4T-1.
+raft.go:473: |1669239197954129700|197s954.129ms|R5T11C|Last election was started for 614.2443ms, did get only 1 votes, restarting election
+raft.go:389: |1669239197954221400|197s954.221ms|R5T11C|In start_election
+raft.go:269: |1669239197954433200|197s954.433ms|R6T11C|rcv reqvote from R5T12, reseting state to follower, update term, grant vote
+raft.go:269: |1669239197954508900|197s954.508ms|R3T10F|rcv reqvote from R5T12, reseting state to follower, update term, grant vote
+raft.go:269: |1669239197954520500|197s954.520ms|R0T10L|rcv reqvote from R5T12, reseting state to follower, update term, grant vote
+raft.go:314: |1669239197954528700|197s954.528ms|R5T12C|rcv votegranted from R6T12, now I have 2 votes
+raft.go:314: |1669239197954691100|197s954.691ms|R5T12C|rcv votegranted from R3T12, now I have 3 votes
+raft.go:314: |1669239197954736300|197s954.736ms|R5T12C|rcv votegranted from R0T12, now I have 4 votes
+raft.go:454: |1669239197964401000|197s964.401ms|R5T12C|Got majority of votes (4/7), becoming LEADER
+raft.go:457: |1669239197964454600|197s964.454ms|R5T12L|Sending heartbeats
+raft.go:587: |1669239197964597400|197s964.597ms|R6T12F|rcvappendentries from R5T12
+raft.go:587: |1669239197964712300|197s964.712ms|R3T12F|rcvappendentries from R5T12
+raft.go:587: |1669239197964817600|197s964.817ms|R0T12F|rcvappendentries from R5T12
+raft.go:321: |1669239197992638400|197s992.638ms|R6T12F|rcv votedenied from R3T-1.
+raft.go:321: |1669239198005991700|198s005.991ms|R0T9F|rcv votedenied from R2T-1.
+raft.go:321: |1669239198028340600|198s028.340ms|R6T12F|rcv votedenied from R1T-1.
+raft.go:321: |1669239198219321500|198s219.321ms|R2T10F|rcv votedenied from R6T-1.
+raft.go:321: |1669239198230997600|198s230.997ms|R5T12L|rcv votedenied from R1T-1.
+raft.go:321: |1669239198238334800|198s238.334ms|R6T12F|rcv votedenied from R2T-1.
+raft.go:446: |1669239198261278400|198s261.278ms|R2T10F|no appendentries since 603.4962ms starting election.
+raft.go:389: |1669239198261427400|198s261.427ms|R2T10F|In start_election
+raft.go:446: |1669239198261360200|198s261.360ms|R4T10F|no appendentries since 603.6174ms starting election.
+raft.go:389: |1669239198261610900|198s261.610ms|R4T10F|In start_election
+raft.go:446: |1669239198261391500|198s261.391ms|R1T10F|no appendentries since 603.5314ms starting election.
+raft.go:389: |1669239198261764300|198s261.764ms|R1T10F|In start_election
+raft.go:491: |1669239198271718000|198s271.718ms|R5T12L|Last appendentriessenttime was 307.2626ms ago, sending heartbeats.
+raft.go:321: |1669239198498844300|198s498.844ms|R2T11C|rcv votedenied from R0T-1.
+raft.go:446: |1669239198569010200|198s569.010ms|R6T12F|no appendentries since 604.4096ms starting election.
+raft.go:389: |1669239198569336700|198s569.336ms|R6T12F|In start_election
+raft.go:446: |1669239198569055000|198s569.055ms|R0T12F|no appendentries since 604.2353ms starting election.
+raft.go:269: |1669239198569748600|198s569.748ms|R0T12F|rcv reqvote from R6T13, reseting state to follower, update term, grant vote
+raft.go:269: |1669239198569888800|198s569.888ms|R4T11C|rcv reqvote from R6T13, reseting state to follower, update term, grant vote
+raft.go:269: |1669239198569721800|198s569.721ms|R3T12F|rcv reqvote from R6T13, reseting state to follower, update term, grant vote
+raft.go:314: |1669239198569988800|198s569.988ms|R6T13C|rcv votegranted from R0T13, now I have 2 votes
+raft.go:314: |1669239198570087500|198s570.087ms|R6T13C|rcv votegranted from R4T13, now I have 3 votes
+raft.go:389: |1669239198569764100|198s569.764ms|R0T12F|In start_election
+raft.go:314: |1669239198570218000|198s570.218ms|R6T13C|rcv votegranted from R3T13, now I have 4 votes
+raft.go:446: |1669239198569099300|198s569.099ms|R3T12F|no appendentries since 604.3863ms starting election.
+raft.go:389: |1669239198570393400|198s570.393ms|R3T13F|In start_election
+raft.go:258: |1669239198570525400|198s570.525ms|R3T14C|rcv reqvote from R0T14, but already voted for 3 in this term
+raft.go:321: |1669239198570740900|198s570.740ms|R0T14C|rcv votedenied from R3T14.
+raft.go:269: |1669239198570776500|198s570.776ms|R4T13F|rcv reqvote from R3T14, reseting state to follower, update term, grant vote
+raft.go:269: |1669239198570359600|198s570.359ms|R6T13C|rcv reqvote from R0T14, reseting state to follower, update term, grant vote
+raft.go:258: |1669239198570794200|198s570.794ms|R0T14C|rcv reqvote from R3T14, but already voted for 0 in this term
+raft.go:314: |1669239198570996500|198s570.996ms|R3T14C|rcv votegranted from R4T14, now I have 2 votes
+raft.go:258: |1669239198570957400|198s570.957ms|R4T14F|rcv reqvote from R0T14, but already voted for 3 in this term
+raft.go:321: |1669239198571126900|198s571.126ms|R3T14C|rcv votedenied from R0T14.
+raft.go:321: |1669239198571176000|198s571.176ms|R0T14C|rcv votedenied from R4T14.
+raft.go:314: |1669239198571272600|198s571.272ms|R0T14C|rcv votegranted from R6T14, now I have 2 votes
+raft.go:258: |1669239198570982700|198s570.982ms|R6T14F|rcv reqvote from R3T14, but already voted for 0 in this term
+raft.go:321: |1669239198571438000|198s571.438ms|R3T14C|rcv votedenied from R6T14.
+raft.go:491: |1669239198579333300|198s579.333ms|R5T12L|Last appendentriessenttime was 307.5636ms ago, sending heartbeats.
+raft.go:321: |1669239198681381500|198s681.381ms|R2T11C|rcv votedenied from R0T-1.
+raft.go:321: |1669239198749135100|198s749.135ms|R1T11C|rcv votedenied from R4T-1.
+raft.go:321: |1669239198850972000|198s850.972ms|R2T11C|rcv votedenied from R3T-1.
+raft.go:321: |1669239198877675400|198s877.675ms|R5T12L|rcv votedenied from R1T-1.
+raft.go:491: |1669239198887873300|198s887.873ms|R5T12L|Last appendentriessenttime was 308.3686ms ago, sending heartbeats.
+raft.go:473: |1669239198898222600|198s898.222ms|R1T11C|Last election was started for 636.4134ms, did get only 1 votes, restarting election
+raft.go:389: |1669239198898343400|198s898.343ms|R1T11C|In start_election
+raft.go:321: |1669239198914882400|198s914.882ms|R5T12L|rcv votedenied from R0T-1.
+raft.go:473: |1669239198949776400|198s949.776ms|R2T11C|Last election was started for 688.2577ms, did get only 1 votes, restarting election
+raft.go:389: |1669239198949916600|198s949.916ms|R2T11C|In start_election
+raft.go:321: |1669239199043496200|199s043.496ms|R2T12C|rcv votedenied from R5T-1.
+raft.go:321: |1669239199134908800|199s134.908ms|R4T14F|rcv votedenied from R2T-1.
+raft.go:321: |1669239199165915500|199s165.915ms|R3T14C|rcv votedenied from R5T-1.
+raft.go:446: |1669239199176696700|199s176.696ms|R4T14F|no appendentries since 605.8761ms starting election.
+raft.go:446: |1669239199176800900|199s176.800ms|R6T14F|no appendentries since 605.9538ms starting election.
+raft.go:389: |1669239199176877000|199s176.877ms|R6T14F|In start_election
+raft.go:389: |1669239199176823100|199s176.823ms|R4T14F|In start_election
+raft.go:258: |1669239199177331400|199s177.331ms|R6T15C|rcv reqvote from R4T15, but already voted for 6 in this term
+raft.go:321: |1669239199177536000|199s177.536ms|R4T15C|rcv votedenied from R6T15.
+raft.go:269: |1669239199177576500|199s177.576ms|R3T14C|rcv reqvote from R6T15, reseting state to follower, update term, grant vote
+raft.go:269: |1669239199177368800|199s177.368ms|R0T14C|rcv reqvote from R6T15, reseting state to follower, update term, grant vote
+raft.go:314: |1669239199177948800|199s177.948ms|R6T15C|rcv votegranted from R3T15, now I have 2 votes
+raft.go:258: |1669239199177804600|199s177.804ms|R3T15F|rcv reqvote from R4T15, but already voted for 6 in this term
+raft.go:314: |1669239199178057200|199s178.057ms|R6T15C|rcv votegranted from R0T15, now I have 3 votes
+raft.go:258: |1669239199178060300|199s178.060ms|R0T15F|rcv reqvote from R4T15, but already voted for 6 in this term
+raft.go:258: |1669239199177808200|199s177.808ms|R4T15C|rcv reqvote from R6T15, but already voted for 4 in this term
+raft.go:321: |1669239199178774600|199s178.774ms|R6T15C|rcv votedenied from R4T15.
+raft.go:321: |1669239199178863500|199s178.863ms|R4T15C|rcv votedenied from R3T15.
+raft.go:321: |1669239199178902900|199s178.902ms|R4T15C|rcv votedenied from R0T15.
+raft.go:491: |1669239199197573300|199s197.573ms|R5T12L|Last appendentriessenttime was 309.6145ms ago, sending heartbeats.
+raft.go:321: |1669239199197817900|199s197.817ms|R4T15C|rcv votedenied from R3T-1.
+raft.go:321: |1669239199302111500|199s302.111ms|R2T12C|rcv votedenied from R1T-1.
+raft.go:321: |1669239199349842800|199s349.842ms|R6T15C|rcv votedenied from R5T-1.
+raft.go:321: |1669239199396503600|199s396.503ms|R2T12C|rcv votedenied from R4T-1.
+raft.go:321: |1669239199411243000|199s411.243ms|R0T15F|rcv votedenied from R4T-1.
+raft.go:321: |1669239199434786900|199s434.786ms|R3T15F|rcv votedenied from R2T-1.
+raft.go:321: |1669239199440235300|199s440.235ms|R2T12C|rcv votedenied from R3T-1.
+raft.go:491: |1669239199506844200|199s506.844ms|R5T12L|Last appendentriessenttime was 309.1952ms ago, sending heartbeats.
+raft.go:321: |1669239199536517400|199s536.517ms|R2T12C|rcv votedenied from R4T-1.
+raft.go:473: |1669239199537655100|199s537.655ms|R1T12C|Last election was started for 639.2713ms, did get only 1 votes, restarting election
+raft.go:389: |1669239199537709100|199s537.709ms|R1T12C|In start_election
+raft.go:321: |1669239199553889300|199s553.889ms|R2T12C|rcv votedenied from R6T-1.
+raft.go:321: |1669239199554544800|199s554.544ms|R2T12C|rcv votedenied from R3T-1.
+raft.go:473: |1669239199640625100|199s640.625ms|R2T12C|Last election was started for 690.6668ms, did get only 1 votes, restarting election
+raft.go:389: |1669239199640814500|199s640.814ms|R2T12C|In start_election
+raft.go:321: |1669239199665495300|199s665.495ms|R6T15C|rcv votedenied from R1T-1.
+raft.go:446: |1669239199785108400|199s785.108ms|R3T15F|no appendentries since 607.4008ms starting election.
+raft.go:389: |1669239199785342800|199s785.342ms|R3T15F|In start_election
+raft.go:446: |1669239199785223500|199s785.223ms|R0T15F|no appendentries since 607.383ms starting election.
+raft.go:389: |1669239199785611100|199s785.611ms|R0T15F|In start_election
+raft.go:269: |1669239199785640100|199s785.640ms|R6T15C|rcv reqvote from R3T16, reseting state to follower, update term, grant vote
+raft.go:269: |1669239199785764900|199s785.764ms|R4T15C|rcv reqvote from R3T16, reseting state to follower, update term, grant vote
+raft.go:314: |1669239199785819200|199s785.819ms|R3T16C|rcv votegranted from R6T16, now I have 2 votes
+raft.go:258: |1669239199785846800|199s785.846ms|R6T16F|rcv reqvote from R0T16, but already voted for 3 in this term
+raft.go:258: |1669239199785805700|199s785.805ms|R0T16C|rcv reqvote from R3T16, but already voted for 0 in this term
+raft.go:314: |1669239199786013800|199s786.013ms|R3T16C|rcv votegranted from R4T16, now I have 3 votes
+raft.go:258: |1669239199786102200|199s786.102ms|R3T16C|rcv reqvote from R0T16, but already voted for 3 in this term
+raft.go:321: |1669239199786160100|199s786.160ms|R0T16C|rcv votedenied from R6T16.
+raft.go:321: |1669239199786307400|199s786.307ms|R0T16C|rcv votedenied from R3T16.
+raft.go:321: |1669239199786382000|199s786.382ms|R3T16C|rcv votedenied from R0T16.
+raft.go:258: |1669239199786335000|199s786.335ms|R4T16F|rcv reqvote from R0T16, but already voted for 3 in this term
+raft.go:321: |1669239199786574600|199s786.574ms|R0T16C|rcv votedenied from R4T16.
+raft.go:321: |1669239199794540500|199s794.540ms|R4T16F|rcv votedenied from R5T-1.
+raft.go:321: |1669239199813265900|199s813.265ms|R3T16C|rcv votedenied from R5T-1.
+raft.go:491: |1669239199815985900|199s815.985ms|R5T12L|Last appendentriessenttime was 308.9871ms ago, sending heartbeats.
+raft.go:321: |1669239199816049000|199s816.049ms|R0T16C|rcv votedenied from R6T-1.
+raft.go:321: |1669239199824457300|199s824.457ms|R0T16C|rcv votedenied from R1T-1.
+raft.go:321: |1669239199863660000|199s863.660ms|R6T16F|rcv votedenied from R5T-1.
+raft.go:321: |1669239199970843000|199s970.843ms|R5T12L|rcv votedenied from R0T-1.
+raft.go:321: |1669239199991341600|199s991.341ms|R5T12L|rcv votedenied from R0T-1.
+raft.go:321: |1669239200052930200|200s052.930ms|R1T13C|rcv votedenied from R6T-1.
+raft.go:321: |1669239200080211200|200s080.211ms|R5T12L|rcv votedenied from R3T-1.
+raft.go:491: |1669239200125549100|200s125.549ms|R5T12L|Last appendentriessenttime was 309.4339ms ago, sending heartbeats.
+raft.go:321: |1669239200127145500|200s127.145ms|R0T16C|rcv votedenied from R5T-1.
+raft.go:321: |1669239200159470900|200s159.470ms|R2T13C|rcv votedenied from R1T-1.
+raft.go:473: |1669239200176753000|200s176.753ms|R1T13C|Last election was started for 639.0108ms, did get only 1 votes, restarting election
+raft.go:389: |1669239200176879200|200s176.879ms|R1T13C|In start_election
+raft.go:321: |1669239200237920100|200s237.920ms|R4T16F|rcv votedenied from R2T-1.
+raft.go:321: |1669239200254039700|200s254.039ms|R5T12L|rcv votedenied from R6T-1.
+raft.go:321: |1669239200256970500|200s256.970ms|R3T16C|rcv votedenied from R4T-1.
+raft.go:321: |1669239200310934900|200s310.934ms|R4T16F|rcv votedenied from R1T-1.
+raft.go:473: |1669239200331558400|200s331.558ms|R2T13C|Last election was started for 690.6498ms, did get only 1 votes, restarting election
+raft.go:389: |1669239200331694900|200s331.694ms|R2T13C|In start_election
+raft.go:446: |1669239200393304500|200s393.304ms|R6T16F|no appendentries since 607.6156ms starting election.
+raft.go:389: |1669239200393495600|200s393.495ms|R6T16F|In start_election
+raft.go:446: |1669239200393306300|200s393.306ms|R4T16F|no appendentries since 607.4765ms starting election.
+raft.go:389: |1669239200393685500|200s393.685ms|R4T16F|In start_election
+raft.go:269: |1669239200393819900|200s393.819ms|R0T16C|rcv reqvote from R6T17, reseting state to follower, update term, grant vote
+raft.go:269: |1669239200393872000|200s393.872ms|R3T16C|rcv reqvote from R6T17, reseting state to follower, update term, grant vote
+raft.go:314: |1669239200394008300|200s394.008ms|R6T17C|rcv votegranted from R0T17, now I have 2 votes
+raft.go:258: |1669239200394033800|200s394.033ms|R0T17F|rcv reqvote from R4T17, but already voted for 6 in this term
+raft.go:314: |1669239200394060000|200s394.060ms|R6T17C|rcv votegranted from R3T17, now I have 3 votes
+raft.go:258: |1669239200393826300|200s393.826ms|R4T17C|rcv reqvote from R6T17, but already voted for 4 in this term
+raft.go:321: |1669239200394279900|200s394.279ms|R4T17C|rcv votedenied from R0T17.
+raft.go:258: |1669239200394280600|200s394.280ms|R3T17F|rcv reqvote from R4T17, but already voted for 6 in this term
+raft.go:258: |1669239200394291700|200s394.291ms|R6T17C|rcv reqvote from R4T17, but already voted for 6 in this term
+raft.go:321: |1669239200394501500|200s394.501ms|R4T17C|rcv votedenied from R3T17.
+raft.go:321: |1669239200394680400|200s394.680ms|R6T17C|rcv votedenied from R4T17.
+raft.go:321: |1669239200394738100|200s394.738ms|R4T17C|rcv votedenied from R6T17.
+raft.go:321: |1669239200428786500|200s428.786ms|R5T12L|rcv votedenied from R4T-1.
+raft.go:491: |1669239200434340500|200s434.340ms|R5T12L|Last appendentriessenttime was 308.6474ms ago, sending heartbeats.
+raft.go:321: |1669239200446115100|200s446.115ms|R0T17F|rcv votedenied from R2T-1.
+raft.go:321: |1669239200557903800|200s557.903ms|R1T14C|rcv votedenied from R4T-1.
+raft.go:321: |1669239200662752800|200s662.752ms|R0T17F|rcv votedenied from R1T-1.
+raft.go:321: |1669239200685217200|200s685.217ms|R5T12L|rcv votedenied from R6T-1.
+raft.go:491: |1669239200743857600|200s743.857ms|R5T12L|Last appendentriessenttime was 309.3418ms ago, sending heartbeats.
+raft.go:321: |1669239200791142900|200s791.142ms|R1T14C|rcv votedenied from R6T-1.
+raft.go:321: |1669239200796501000|200s796.501ms|R2T14C|rcv votedenied from R5T-1.
+raft.go:473: |1669239200815919500|200s815.919ms|R1T14C|Last election was started for 638.9971ms, did get only 1 votes, restarting election
+raft.go:389: |1669239200816020000|200s816.020ms|R1T14C|In start_election
+raft.go:321: |1669239200846824500|200s846.824ms|R1T15C|rcv votedenied from R2T-1.
+raft.go:321: |1669239200938075500|200s938.075ms|R3T17F|rcv votedenied from R2T-1.
+raft.go:321: |1669239200973468000|200s973.468ms|R1T15C|rcv votedenied from R3T-1.
+raft.go:321: |1669239200995223400|200s995.223ms|R2T14C|rcv votedenied from R3T-1.
+raft.go:446: |1669239201001716400|201s001.716ms|R3T17F|no appendentries since 607.7901ms starting election.
+raft.go:389: |1669239201001783100|201s001.783ms|R3T17F|In start_election
+raft.go:446: |1669239201001802600|201s001.802ms|R0T17F|no appendentries since 607.9281ms starting election.
+raft.go:389: |1669239201001862400|201s001.862ms|R0T17F|In start_election
+raft.go:258: |1669239201002104200|201s002.104ms|R0T18C|rcv reqvote from R3T18, but already voted for 0 in this term
+raft.go:258: |1669239201002271100|201s002.271ms|R3T18C|rcv reqvote from R0T18, but already voted for 3 in this term
+raft.go:269: |1669239201002104500|201s002.104ms|R6T17C|rcv reqvote from R0T18, reseting state to follower, update term, grant vote
+raft.go:321: |1669239201002468100|201s002.468ms|R3T18C|rcv votedenied from R0T18.
+raft.go:269: |1669239201002126400|201s002.126ms|R4T17C|rcv reqvote from R0T18, reseting state to follower, update term, grant vote
+raft.go:258: |1669239201002537500|201s002.537ms|R6T18F|rcv reqvote from R3T18, but already voted for 0 in this term
+raft.go:321: |1669239201002509600|201s002.509ms|R0T18C|rcv votedenied from R3T18.
+raft.go:314: |1669239201002692900|201s002.692ms|R0T18C|rcv votegranted from R6T18, now I have 2 votes
+raft.go:321: |1669239201002731900|201s002.731ms|R3T18C|rcv votedenied from R6T18.
+raft.go:314: |1669239201002741500|201s002.741ms|R0T18C|rcv votegranted from R4T18, now I have 3 votes
+raft.go:258: |1669239201002583900|201s002.583ms|R4T18F|rcv reqvote from R3T18, but already voted for 0 in this term
+raft.go:321: |1669239201003081000|201s003.081ms|R3T18C|rcv votedenied from R4T18.
+raft.go:321: |1669239201013217100|201s013.217ms|R4T18F|rcv votedenied from R6T-1.
+raft.go:473: |1669239201022306800|201s022.306ms|R2T14C|Last election was started for 690.5704ms, did get only 1 votes, restarting election
+raft.go:389: |1669239201022412400|201s022.412ms|R2T14C|In start_election
+raft.go:321: |1669239201024942100|201s024.942ms|R3T18C|rcv votedenied from R0T-1.
+raft.go:491: |1669239201053010400|201s053.010ms|R5T12L|Last appendentriessenttime was 309.0375ms ago, sending heartbeats.
+raft.go:321: |1669239201137307300|201s137.307ms|R1T15C|rcv votedenied from R0T-1.
+raft.go:321: |1669239201170840900|201s170.840ms|R1T15C|rcv votedenied from R6T-1.
+raft.go:321: |1669239201205139200|201s205.139ms|R1T15C|rcv votedenied from R3T-1.
+raft.go:321: |1669239201228854500|201s228.854ms|R5T12L|rcv votedenied from R4T-1.
+raft.go:321: |1669239201276152100|201s276.152ms|R3T18C|rcv votedenied from R5T-1.
+raft.go:321: |1669239201276307900|201s276.307ms|R6T18F|rcv votedenied from R3T-1.
+raft.go:321: |1669239201300608200|201s300.608ms|R1T15C|rcv votedenied from R5T-1.
+raft.go:321: |1669239201311434700|201s311.434ms|R4T18F|rcv votedenied from R5T-1.
+raft.go:321: |1669239201350295900|201s350.295ms|R5T12L|rcv votedenied from R1T-1.
+raft.go:491: |1669239201362808400|201s362.808ms|R5T12L|Last appendentriessenttime was 309.4939ms ago, sending heartbeats.
+raft.go:321: |1669239201447923600|201s447.923ms|R4T18F|rcv votedenied from R0T-1.
+raft.go:473: |1669239201455431200|201s455.431ms|R1T15C|Last election was started for 639.3787ms, did get only 1 votes, restarting election
+raft.go:389: |1669239201455539900|201s455.539ms|R1T15C|In start_election
+raft.go:321: |1669239201468477200|201s468.477ms|R2T15C|rcv votedenied from R5T-1.
+raft.go:321: |1669239201495318300|201s495.318ms|R5T12L|rcv votedenied from R4T-1.
+raft.go:321: |1669239201575460800|201s575.460ms|R1T16C|rcv votedenied from R2T-1.
+raft.go:321: |1669239201580051700|201s580.051ms|R4T18F|rcv votedenied from R5T-1.
+raft.go:321: |1669239201606486500|201s606.486ms|R6T18F|rcv votedenied from R2T-1.
+raft.go:446: |1669239201610435800|201s610.435ms|R6T18F|no appendentries since 607.9589ms starting election.
+raft.go:389: |1669239201610540500|201s610.540ms|R6T18F|In start_election
+raft.go:446: |1669239201610466700|201s610.466ms|R4T18F|no appendentries since 607.9247ms starting election.
+raft.go:389: |1669239201610800400|201s610.800ms|R4T18F|In start_election
+raft.go:269: |1669239201610968200|201s610.968ms|R3T18C|rcv reqvote from R6T19, reseting state to follower, update term, grant vote
+raft.go:258: |1669239201611029900|201s611.029ms|R6T19C|rcv reqvote from R4T19, but already voted for 6 in this term
+raft.go:269: |1669239201611115800|201s611.115ms|R0T18C|rcv reqvote from R4T19, reseting state to follower, update term, grant vote
+raft.go:321: |1669239201611244400|201s611.244ms|R4T19C|rcv votedenied from R6T19.
+raft.go:258: |1669239201611304400|201s611.304ms|R0T19F|rcv reqvote from R6T19, but already voted for 4 in this term
+raft.go:314: |1669239201611341200|201s611.341ms|R4T19C|rcv votegranted from R0T19, now I have 2 votes
+raft.go:314: |1669239201611139900|201s611.139ms|R6T19C|rcv votegranted from R3T19, now I have 2 votes
+raft.go:258: |1669239201611422200|201s611.422ms|R4T19C|rcv reqvote from R6T19, but already voted for 4 in this term
+raft.go:258: |1669239201611473600|201s611.473ms|R3T19F|rcv reqvote from R4T19, but already voted for 6 in this term
+raft.go:321: |1669239201611468300|201s611.468ms|R6T19C|rcv votedenied from R0T19.
+raft.go:321: |1669239201611744600|201s611.744ms|R6T19C|rcv votedenied from R4T19.
+raft.go:321: |1669239201611697300|201s611.697ms|R4T19C|rcv votedenied from R3T19.
+raft.go:321: |1669239201651705800|201s651.705ms|R3T19F|rcv votedenied from R2T-1.
+raft.go:491: |1669239201672005400|201s672.005ms|R5T12L|Last appendentriessenttime was 309.1186ms ago, sending heartbeats.
+raft.go:321: |1669239201707439300|201s707.439ms|R3T19F|rcv votedenied from R5T-1.
+raft.go:473: |1669239201713385600|201s713.385ms|R2T15C|Last election was started for 690.9339ms, did get only 1 votes, restarting election
+raft.go:389: |1669239201713508700|201s713.508ms|R2T15C|In start_election
+raft.go:321: |1669239201760214400|201s760.214ms|R1T16C|rcv votedenied from R2T-1.
+raft.go:321: |1669239201776229900|201s776.229ms|R1T16C|rcv votedenied from R5T-1.
+raft.go:321: |1669239201776412400|201s776.412ms|R0T19F|rcv votedenied from R5T-1.
+raft.go:321: |1669239201792986100|201s792.986ms|R5T12L|rcv votedenied from R2T-1.
+raft.go:321: |1669239201964954700|201s964.954ms|R4T19C|rcv votedenied from R6T-1.
+raft.go:491: |1669239201981144900|201s981.144ms|R5T12L|Last appendentriessenttime was 309.0024ms ago, sending heartbeats.
+raft.go:321: |1669239201984512700|201s984.512ms|R2T16C|rcv votedenied from R4T-1.
+raft.go:321: |1669239202024893200|202s024.893ms|R6T19C|rcv votedenied from R2T-1.
+raft.go:321: |1669239202049460700|202s049.460ms|R1T16C|rcv votedenied from R4T-1.
+raft.go:321: |1669239202063803000|202s063.803ms|R6T19C|rcv votedenied from R2T-1.
+raft.go:321: |1669239202074122100|202s074.122ms|R5T12L|rcv votedenied from R3T-1.
+raft.go:473: |1669239202094802200|202s094.802ms|R1T16C|Last election was started for 639.2205ms, did get only 1 votes, restarting election
+raft.go:389: |1669239202094984200|202s094.984ms|R1T16C|In start_election
+raft.go:321: |1669239202135043100|202s135.043ms|R4T19C|rcv votedenied from R3T-1.
+raft.go:446: |1669239202218567700|202s218.567ms|R3T19F|no appendentries since 607.5447ms starting election.
+raft.go:389: |1669239202218733500|202s218.733ms|R3T19F|In start_election
+raft.go:446: |1669239202218688300|202s218.688ms|R0T19F|no appendentries since 607.5064ms starting election.
+raft.go:389: |1669239202219072200|202s219.072ms|R0T19F|In start_election
+raft.go:269: |1669239202219088500|202s219.088ms|R6T19C|rcv reqvote from R3T20, reseting state to follower, update term, grant vote
+raft.go:258: |1669239202219330500|202s219.330ms|R6T20F|rcv reqvote from R0T20, but already voted for 3 in this term
+raft.go:269: |1669239202219097100|202s219.097ms|R4T19C|rcv reqvote from R3T20, reseting state to follower, update term, grant vote
+raft.go:258: |1669239202219418800|202s219.418ms|R0T20C|rcv reqvote from R3T20, but already voted for 0 in this term
+raft.go:314: |1669239202219403800|202s219.403ms|R3T20C|rcv votegranted from R6T20, now I have 2 votes
+raft.go:314: |1669239202219686700|202s219.686ms|R3T20C|rcv votegranted from R4T20, now I have 3 votes
+raft.go:258: |1669239202219591600|202s219.591ms|R4T20F|rcv reqvote from R0T20, but already voted for 3 in this term
+raft.go:258: |1669239202219734000|202s219.734ms|R3T20C|rcv reqvote from R0T20, but already voted for 3 in this term
+raft.go:321: |1669239202219780000|202s219.780ms|R0T20C|rcv votedenied from R6T20.
+raft.go:321: |1669239202220073500|202s220.073ms|R0T20C|rcv votedenied from R4T20.
+raft.go:321: |1669239202220215900|202s220.215ms|R0T20C|rcv votedenied from R3T20.
+raft.go:321: |1669239202219884400|202s219.884ms|R3T20C|rcv votedenied from R0T20.
+raft.go:321: |1669239202243327000|202s243.327ms|R6T20F|rcv votedenied from R5T-1.
+raft.go:491: |1669239202290945000|202s290.945ms|R5T12L|Last appendentriessenttime was 309.6341ms ago, sending heartbeats.
+raft.go:321: |1669239202321844400|202s321.844ms|R3T20C|rcv votedenied from R1T-1.
+raft.go:321: |1669239202353635200|202s353.635ms|R6T20F|rcv votedenied from R0T-1.
+raft.go:473: |1669239202403416600|202s403.416ms|R2T16C|Last election was started for 689.8675ms, did get only 1 votes, restarting election
+raft.go:389: |1669239202403501900|202s403.501ms|R2T16C|In start_election
+raft.go:321: |1669239202466282100|202s466.282ms|R2T17C|rcv votedenied from R6T-1.
+raft.go:321: |1669239202481502300|202s481.502ms|R2T17C|rcv votedenied from R0T-1.
+raft.go:321: |1669239202507941300|202s507.941ms|R6T20F|rcv votedenied from R5T-1.
+raft.go:321: |1669239202583113300|202s583.113ms|R2T17C|rcv votedenied from R1T-1.
+raft.go:491: |1669239202597690300|202s597.690ms|R5T12L|Last appendentriessenttime was 306.6384ms ago, sending heartbeats.
+raft.go:321: |1669239202617603700|202s617.603ms|R2T17C|rcv votedenied from R1T-1.
+raft.go:321: |1669239202649748100|202s649.748ms|R2T17C|rcv votedenied from R5T-1.
+raft.go:473: |1669239202730941300|202s730.941ms|R1T17C|Last election was started for 635.9138ms, did get only 1 votes, restarting election
+raft.go:389: |1669239202731050500|202s731.050ms|R1T17C|In start_election
+raft.go:321: |1669239202784611600|202s784.611ms|R4T20F|rcv votedenied from R1T-1.
+raft.go:321: |1669239202803949000|202s803.949ms|R1T18C|rcv votedenied from R4T-1.
+raft.go:446: |1669239202823295700|202s823.295ms|R4T20F|no appendentries since 603.8396ms starting election.
+raft.go:389: |1669239202823467400|202s823.467ms|R4T20F|In start_election
+raft.go:446: |1669239202823380700|202s823.380ms|R6T20F|no appendentries since 604.1118ms starting election.
+raft.go:389: |1669239202823607200|202s823.607ms|R6T20F|In start_election
+raft.go:269: |1669239202823705400|202s823.705ms|R3T20C|rcv reqvote from R4T21, reseting state to follower, update term, grant vote
+raft.go:269: |1669239202823744000|202s823.744ms|R0T20C|rcv reqvote from R4T21, reseting state to follower, update term, grant vote
+raft.go:314: |1669239202823814700|202s823.814ms|R4T21C|rcv votegranted from R3T21, now I have 2 votes
+raft.go:314: |1669239202823836300|202s823.836ms|R4T21C|rcv votegranted from R0T21, now I have 3 votes
+raft.go:258: |1669239202823921900|202s823.921ms|R6T21C|rcv reqvote from R4T21, but already voted for 6 in this term
+raft.go:321: |1669239202824027500|202s824.027ms|R4T21C|rcv votedenied from R6T21.
+raft.go:258: |1669239202823896800|202s823.896ms|R0T21F|rcv reqvote from R6T21, but already voted for 4 in this term
+raft.go:258: |1669239202824049600|202s824.049ms|R3T21F|rcv reqvote from R6T21, but already voted for 4 in this term
+raft.go:258: |1669239202824191800|202s824.191ms|R4T21C|rcv reqvote from R6T21, but already voted for 4 in this term
+raft.go:321: |1669239202824157500|202s824.157ms|R6T21C|rcv votedenied from R0T21.
+raft.go:321: |1669239202824339700|202s824.339ms|R6T21C|rcv votedenied from R4T21.
+raft.go:321: |1669239202824377300|202s824.377ms|R6T21C|rcv votedenied from R3T21.
+raft.go:321: |1669239202882892700|202s882.892ms|R6T21C|rcv votedenied from R1T-1.
+raft.go:491: |1669239202904997700|202s904.997ms|R5T12L|Last appendentriessenttime was 307.2573ms ago, sending heartbeats.
+raft.go:321: |1669239202952414900|202s952.414ms|R0T21F|rcv votedenied from R2T-1.
+raft.go:321: |1669239202987622400|202s987.622ms|R0T21F|rcv votedenied from R2T-1.
+raft.go:321: |1669239203009651800|203s009.651ms|R6T21C|rcv votedenied from R1T-1.
+raft.go:321: |1669239203023165700|203s023.165ms|R1T18C|rcv votedenied from R3T-1.
+raft.go:321: |1669239203033945100|203s033.945ms|R5T12L|rcv votedenied from R3T-1.
+raft.go:473: |1669239203089480300|203s089.480ms|R2T17C|Last election was started for 685.956ms, did get only 1 votes, restarting election
+raft.go:389: |1669239203089545900|203s089.545ms|R2T17C|In start_election
+raft.go:321: |1669239203136676700|203s136.676ms|R4T21C|rcv votedenied from R1T-1.
+raft.go:321: |1669239203159771700|203s159.771ms|R1T18C|rcv votedenied from R3T-1.
+raft.go:321: |1669239203159976600|203s159.976ms|R0T21F|rcv votedenied from R5T-1.
+--- FAIL: TestManyElections2A (9.85s)
+    config.go:460: expected one leader, got none
+FAIL
+exit status 1
+FAIL	6.824/raft	19.265s

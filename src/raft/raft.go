@@ -462,16 +462,20 @@ func (rf *Raft) ticker() {
 		case CANDIDATE:
 
 			// if vote majority, become leader
-			if rf.votes > len(rf.peers)/2 {
+			rf.mu.Lock()
+			votes := rf.votes
+			if votes > len(rf.peers)/2 {
 				rf.debog("Got majority of votes (%d/%d), becoming LEADER", rf.votes, len(rf.peers))
 				rf.state = LEADER
 				rf.lastAppendEntriesSentTime = time.Now()
 				rf.debog("Sending heartbeats")
+				currentTerm := rf.currentTerm
+				rf.mu.Unlock()
 				// copied from case leader. Update at both places if needed.
 				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
 					if peer_id != rf.me {
 						args := AppendEntriesArgs{
-							Entries: make([]logentry, 0), Term: rf.currentTerm, LeaderId: rf.me}
+							Entries: make([]logentry, 0), Term: currentTerm, LeaderId: rf.me}
 						reply := AppendEntriesReply{}
 						// go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
 						go rf.sendAppendEntries(peer_id, &args, &reply)
@@ -480,9 +484,10 @@ func (rf *Raft) ticker() {
 			} else {
 				// if elections timeout, restart elections
 				LastElectionStartedFor := t.Sub(rf.electionTime)
+				rf.mu.Unlock()
 				// debog("R%d I was in state %v, Last election was started for %v, did get only %d votes, restarting election", rf.me, rf.state, LastElectionStartedFor, votes)
 				if LastElectionStartedFor > election_timeout {
-					rf.debog("Last election was started for %v, did get only %d votes, restarting election", LastElectionStartedFor, rf.votes)
+					rf.debog("Last election was started for %v, did get only %d votes, restarting election", LastElectionStartedFor, votes)
 					rf.start_election()
 				}
 			}

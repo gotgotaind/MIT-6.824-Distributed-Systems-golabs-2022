@@ -78,7 +78,9 @@ func (rf *Raft) debog(format string, a ...interface{}) {
 		restmicro := timemicro - timemili*1000
 		modulomili := timemili % 1000
 		modulosec := (timemili / 1000) % 1000
+		//rf.mu.Lock()
 		prefix := fmt.Sprintf("|%d|%3ds%03d.%03dms|R%vT%v%s|", time, modulosec, modulomili, restmicro, rf.me, rf.currentTerm, rf.state)
+		//rf.mu.Unlock()
 		format = prefix + format
 		// log.Printf(format, a...)
 		log.Output(2, fmt.Sprintf(format, a...))
@@ -143,12 +145,14 @@ func (rf *Raft) GetState() (int, bool) {
 	var term int
 	var isleader bool
 	// Your code here (2A).
+	rf.mu.Lock()
 	term = rf.currentTerm
 	if rf.state == LEADER {
 		isleader = true
 	} else {
 		isleader = false
 	}
+	rf.mu.Unlock()
 	return term, isleader
 }
 
@@ -266,6 +270,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 
 		}
 	} else if args.Term > rf.currentTerm {
+
 		rf.debog("rcv reqvote from R%vT%v, reseting state to follower, update term, grant vote",
 			args.CandidateId, args.Term)
 		rf.lastAppendEntriesReceivedTime = time.Now()
@@ -273,6 +278,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 		rf.state = FOLLOWER
 		reply.VoteGranted = true
 		rf.votedFor = args.CandidateId
+
 	}
 	reply.Term = rf.currentTerm
 }
@@ -439,9 +445,15 @@ func (rf *Raft) ticker() {
 		time.Sleep(10 * time.Millisecond)
 		t := time.Now()
 
-		switch rf.state {
+		rf.mu.Lock()
+		state := rf.state
+		rf.mu.Unlock()
+
+		switch state {
 		case FOLLOWER:
+			rf.mu.Lock()
 			lastAppendEntriesFor := t.Sub(rf.lastAppendEntriesReceivedTime)
+			rf.mu.Unlock()
 			if lastAppendEntriesFor > HEARTBEAT_FREQUENCY*2 {
 				rf.debog("no appendentries since %v starting election.", lastAppendEntriesFor)
 
@@ -521,6 +533,7 @@ func (rf *Raft) ticker() {
 func Make(peers []*labrpc.ClientEnd, me int,
 	persister *Persister, applyCh chan ApplyMsg) *Raft {
 	rf := &Raft{}
+	rf.mu.Lock()
 	rf.peers = peers
 	rf.persister = persister
 	rf.me = me
@@ -534,7 +547,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
-
+	rf.mu.Unlock()
 	// start ticker goroutine to start elections
 	go rf.ticker()
 

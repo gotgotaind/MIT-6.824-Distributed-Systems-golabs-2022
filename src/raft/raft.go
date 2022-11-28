@@ -52,9 +52,9 @@ func (s State) String() string {
 }
 
 const (
-	ELECTION_TIMEOUT        = 600 * time.Millisecond
+	ELECTION_TIMEOUT        = 1200 * time.Millisecond
 	RANDOM_ELECTION_TIMEOUT = 100 // will be converted to milliseconds when randomized in make raft
-	HEARTBEAT_FREQUENCY     = ELECTION_TIMEOUT / 2
+	HEARTBEAT_FREQUENCY     = 1000 * time.Millisecond
 )
 
 var debugStart time.Time
@@ -315,17 +315,27 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *RequestVoteReply) bool {
 	ok := rf.peers[server].Call("Raft.RequestVote", args, reply)
 	rf.mu.Lock()
-	if reply.VoteGranted {
-		rf.votes++
-		rf.debog("rcv votegranted from R%vT%v, now I have %v votes", server, reply.Term, rf.votes)
+	if !ok {
+		rf.debog("request vote to R%v for term %v failed or timeout", server, args.Term)
 	} else {
-		if reply.Term > rf.currentTerm {
-			rf.debog("rcv votedenied from R%vT%v. Updating term and resigning.", server, reply.Term)
-			rf.state = FOLLOWER
-			rf.currentTerm = reply.Term
+		if reply.Term == rf.currentTerm {
+			if reply.VoteGranted {
+				rf.votes++
+				rf.debog("rcv votegranted from R%v for term %v, now I have %v votes", server, reply.Term, rf.votes)
+			} else {
+				rf.debog("rcv votedenied from R%v for term %v, maybe already voted for someone else?", server, reply.Term)
+			}
 		} else {
-			rf.debog("rcv votedenied from R%vT%v.", server, reply.Term)
-
+			if reply.Term > rf.currentTerm {
+				rf.debog("rcv votereply from R%v with term %v ( larger than mine ). Updating term and resigning.", server, reply.Term)
+				rf.state = FOLLOWER
+				rf.currentTerm = reply.Term
+				if reply.VoteGranted {
+					rf.debog("ERROR rcv votereply from R%v with term %v ( larger than mine ). but votegranted is true.", server, reply.Term)
+				}
+			} else {
+				rf.debog("rcv votereply from R%v with term %v ( older than mine ). Too late. Do nothing.", server, reply.Term)
+			}
 		}
 	}
 	rf.mu.Unlock()
@@ -513,6 +523,7 @@ func (rf *Raft) ticker() {
 							Entries: make([]logentry, 0), Term: rf.currentTerm, LeaderId: rf.me}
 						reply := AppendEntriesReply{}
 						// go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+						rf.debog("Sending appenentries to %v for term %v", peer_id, args.Term)
 						go rf.sendAppendEntries(peer_id, &args, &reply)
 					}
 				}

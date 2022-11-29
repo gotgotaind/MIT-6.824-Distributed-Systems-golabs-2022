@@ -346,10 +346,16 @@ func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *Reques
 func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
 	ok := rf.peers[server].Call("Raft.AppendEntries", args, reply)
 	rf.mu.Lock()
-	if reply.Term > rf.currentTerm {
-		rf.debog("rcv AppendEntries reply with term %v. Updating term and reseting state to follower.", reply.Term)
-		rf.state = FOLLOWER
-		rf.currentTerm = reply.Term
+	if !ok {
+		rf.debog("sendAppendEntries to %v for term %v failed or timedout", server, args.Term)
+	} else {
+		if reply.Term > rf.currentTerm {
+			rf.debog("rcv AppendEntries reply from R%v with term %v. Updating term and reseting state to follower.", server, reply.Term)
+			rf.state = FOLLOWER
+			rf.currentTerm = reply.Term
+		} else {
+			rf.debog("rcv AppendEntries reply from R%v with term %v.", server, reply.Term)
+		}
 	}
 	rf.mu.Unlock()
 
@@ -418,7 +424,8 @@ func (rf *Raft) start_election() {
 				CandidateId:  rf.me,
 				LastLogIndex: len(rf.log) - 1,
 			}
-			reply := RequestVoteReply{VoteGranted: false, Term: -1}
+			// reply := RequestVoteReply{VoteGranted: false, Term: -1}
+			reply := RequestVoteReply{}
 			// if len rf.log == 0 it means rf.log is null, and it has no defined term
 			if len(rf.log) > 0 {
 				args.LastLogTerm = rf.log[len(rf.log)-1].Term
@@ -488,6 +495,7 @@ func (rf *Raft) ticker() {
 							Entries: make([]logentry, 0), Term: currentTerm, LeaderId: rf.me}
 						reply := AppendEntriesReply{}
 						// go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+						rf.debog("Sending appenentries to %v for term %v", peer_id, args.Term)
 						go rf.sendAppendEntries(peer_id, &args, &reply)
 					}
 				}

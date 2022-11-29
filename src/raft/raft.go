@@ -52,9 +52,9 @@ func (s State) String() string {
 }
 
 const (
-	ELECTION_TIMEOUT        = 1200 * time.Millisecond
-	RANDOM_ELECTION_TIMEOUT = 100 // will be converted to milliseconds when randomized in make raft
-	HEARTBEAT_FREQUENCY     = 1000 * time.Millisecond
+	ELECTION_TIMEOUT        = 800 * time.Millisecond
+	RANDOM_ELECTION_TIMEOUT = 200 // will be converted to milliseconds when randomized in make raft
+	HEARTBEAT_FREQUENCY     = 600 * time.Millisecond
 )
 
 var debugStart time.Time
@@ -472,7 +472,9 @@ func (rf *Raft) ticker() {
 			lastAppendEntriesFor := t.Sub(rf.lastAppendEntriesReceivedTime)
 			rf.mu.Unlock()
 			if lastAppendEntriesFor > HEARTBEAT_FREQUENCY*2 {
+				rf.mu.Lock()
 				rf.debog("no appendentries since %v starting election.", lastAppendEntriesFor)
+				rf.mu.Unlock()
 
 				rf.start_election()
 			}
@@ -487,12 +489,13 @@ func (rf *Raft) ticker() {
 				rf.lastAppendEntriesSentTime = time.Now()
 				rf.debog("Sending heartbeats")
 				currentTerm := rf.currentTerm
+				leaderId := rf.me
 				rf.mu.Unlock()
 				// copied from case leader. Update at both places if needed.
 				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
 					if peer_id != rf.me {
 						args := AppendEntriesArgs{
-							Entries: make([]logentry, 0), Term: currentTerm, LeaderId: rf.me}
+							Entries: make([]logentry, 0), Term: currentTerm, LeaderId: leaderId}
 						reply := AppendEntriesReply{}
 						// go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
 						rf.debog("Sending appenentries to %v for term %v", peer_id, args.Term)
@@ -521,14 +524,20 @@ func (rf *Raft) ticker() {
 			// should only send them at HEARTBEATFREQUENCY THOUGH
 			// Checking that a more recent term is seen nin a reply is managed in the AppendEntries server function
 			// block copied in case candidate, update also there id needed
+			rf.mu.Lock()
 			lastAppendEntriesSentSince := time.Since(rf.lastAppendEntriesSentTime)
+			rf.mu.Unlock()
 			if lastAppendEntriesSentSince > HEARTBEAT_FREQUENCY {
 				rf.debog("Last appendentriessenttime was %v ago, sending heartbeats.", lastAppendEntriesSentSince)
+				rf.mu.Lock()
 				rf.lastAppendEntriesSentTime = time.Now()
+				term := rf.currentTerm
+				leaderId := rf.me
+				rf.mu.Unlock()
 				for peer_id := 0; peer_id < len(rf.peers); peer_id++ {
 					if peer_id != rf.me {
 						args := AppendEntriesArgs{
-							Entries: make([]logentry, 0), Term: rf.currentTerm, LeaderId: rf.me}
+							Entries: make([]logentry, 0), Term: term, LeaderId: leaderId}
 						reply := AppendEntriesReply{}
 						// go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
 						rf.debog("Sending appenentries to %v for term %v", peer_id, args.Term)

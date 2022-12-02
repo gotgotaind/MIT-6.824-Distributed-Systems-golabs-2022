@@ -52,9 +52,9 @@ func (s State) String() string {
 }
 
 const (
-	ELECTION_TIMEOUT        = 800 * time.Millisecond
-	RANDOM_ELECTION_TIMEOUT = 200 // will be converted to milliseconds when randomized in make raft
-	HEARTBEAT_FREQUENCY     = 600 * time.Millisecond
+	ELECTION_AND_HEARTBEAT_BASE_TIMEOUT          = 800 * time.Millisecond
+	ELECTION_AND_HEARTBEAT_TIMEOUT_RANDOM_FACTOR = 200 // will be converted to milliseconds when randomized in make raft
+	HEARTBEAT_FREQUENCY                          = 300 * time.Millisecond
 )
 
 var debugStart time.Time
@@ -79,7 +79,7 @@ func (rf *Raft) debog(format string, a ...interface{}) {
 		modulomili := timemili % 1000
 		modulosec := (timemili / 1000) % 1000
 		//rf.mu.Lock()
-		prefix := fmt.Sprintf("|%d|%3ds%03d.%03dms|R%vT%v%s|", time, modulosec, modulomili, restmicro, rf.me, rf.currentTerm, rf.state)
+		prefix := fmt.Sprintf("|%d|%3ds%03dms%03dus|R%vT%v%s|", time, modulosec, modulomili, restmicro, rf.me, rf.currentTerm, rf.state)
 		//rf.mu.Unlock()
 		format = prefix + format
 		// log.Printf(format, a...)
@@ -313,7 +313,9 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 // the struct itself.
 //
 func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *RequestVoteReply) bool {
+	start := time.Now()
 	ok := rf.peers[server].Call("Raft.RequestVote", args, reply)
+	duration := float64(time.Now().Sub(start).Microseconds()) / 1000
 	rf.mu.Lock()
 	if !ok {
 		rf.debog("request vote to R%v for term %v failed or timeout", server, args.Term)
@@ -321,20 +323,20 @@ func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *Reques
 		if reply.Term == rf.currentTerm {
 			if reply.VoteGranted {
 				rf.votes++
-				rf.debog("rcv votegranted from R%v for term %v, now I have %v votes", server, reply.Term, rf.votes)
+				rf.debog("rcv votegranted from R%v for term %v, now I have %v votes|%.3fms", server, reply.Term, rf.votes, duration)
 			} else {
-				rf.debog("rcv votedenied from R%v for term %v, maybe already voted for someone else?", server, reply.Term)
+				rf.debog("rcv votedenied from R%v for term %v, maybe already voted for someone else?|%.3fms", server, reply.Term, duration)
 			}
 		} else {
 			if reply.Term > rf.currentTerm {
-				rf.debog("rcv votereply from R%v with term %v ( larger than mine ). Updating term and resigning.", server, reply.Term)
+				rf.debog("rcv votereply from R%v with term %v ( larger than mine ). Updating term and resigning.|%.3fms", server, reply.Term, duration)
 				rf.state = FOLLOWER
 				rf.currentTerm = reply.Term
 				if reply.VoteGranted {
-					rf.debog("ERROR rcv votereply from R%v with term %v ( larger than mine ). but votegranted is true.", server, reply.Term)
+					rf.debog("ERROR rcv votereply from R%v with term %v ( larger than mine ). but votegranted is true.|%.3fms", server, reply.Term, duration)
 				}
 			} else {
-				rf.debog("rcv votereply from R%v with term %v ( older than mine ). Too late. Do nothing.", server, reply.Term)
+				rf.debog("rcv votereply from R%v with term %v ( older than mine ). Too late. Do nothing.|%.3fms", server, reply.Term, duration)
 			}
 		}
 	}
@@ -344,17 +346,19 @@ func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *Reques
 }
 
 func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
+	start := time.Now()
 	ok := rf.peers[server].Call("Raft.AppendEntries", args, reply)
+	duration := float64(time.Now().Sub(start).Microseconds()) / 1000
 	rf.mu.Lock()
 	if !ok {
-		rf.debog("sendAppendEntries to %v for term %v failed or timedout", server, args.Term)
+		rf.debog("sendAppendEntries to %v for term %v failed or timedout|%.3fms", server, args.Term, duration)
 	} else {
 		if reply.Term > rf.currentTerm {
-			rf.debog("rcv AppendEntries reply from R%v with term %v. Updating term and reseting state to follower.", server, reply.Term)
+			rf.debog("rcv AppendEntries reply from R%v with term %v. Updating term and reseting state to follower.|%.3fms", server, reply.Term, duration)
 			rf.state = FOLLOWER
 			rf.currentTerm = reply.Term
 		} else {
-			rf.debog("rcv AppendEntries reply from R%v with term %v.", server, reply.Term)
+			rf.debog("rcv AppendEntries reply from R%v with term %v.|%.3fms", server, reply.Term, duration)
 		}
 	}
 	rf.mu.Unlock()
@@ -442,7 +446,7 @@ func (rf *Raft) ticker() {
 	rf.debog("Starting ticker.")
 
 	rand.Seed(time.Now().UnixNano())
-	election_timeout := ELECTION_TIMEOUT + time.Duration(rand.Intn(RANDOM_ELECTION_TIMEOUT))*time.Millisecond
+	election_timeout := ELECTION_AND_HEARTBEAT_BASE_TIMEOUT + time.Duration(rand.Intn(ELECTION_AND_HEARTBEAT_TIMEOUT_RANDOM_FACTOR))*time.Millisecond
 
 	for rf.killed() == false {
 
@@ -471,7 +475,7 @@ func (rf *Raft) ticker() {
 			rf.mu.Lock()
 			lastAppendEntriesFor := t.Sub(rf.lastAppendEntriesReceivedTime)
 			rf.mu.Unlock()
-			if lastAppendEntriesFor > HEARTBEAT_FREQUENCY*2 {
+			if lastAppendEntriesFor > election_timeout {
 				rf.mu.Lock()
 				rf.debog("no appendentries since %v starting election.", lastAppendEntriesFor)
 				rf.mu.Unlock()
@@ -540,7 +544,9 @@ func (rf *Raft) ticker() {
 							Entries: make([]logentry, 0), Term: term, LeaderId: leaderId}
 						reply := AppendEntriesReply{}
 						// go rf.peers[peer_id].Call("Raft.AppendEntries", &args, &reply)
+						rf.mu.Lock()
 						rf.debog("Sending appenentries to %v for term %v", peer_id, args.Term)
+						rf.mu.Unlock()
 						go rf.sendAppendEntries(peer_id, &args, &reply)
 					}
 				}
